@@ -2,6 +2,7 @@
 
 import requests
 import bs4
+import re
 
 def main():
     res = requests.get('https://www.globusjourneys.com/tour/canyon-country-adventure/av/?nextyear=true&content=price')
@@ -40,18 +41,26 @@ def main():
     for departure in soup.find_all('div', class_='listing'):
 
         date_numbers = departure.find('p', class_='date-numbers').text.split()
+        
         actual_price = departure.find('p', class_='price-actual').text.strip()
-        if departure.find('p', class_='price-strike') != None:
-            original_price = departure.find('p', class_='price-strike').text
-        else:
+        
+        if departure.find('p', class_='price-strike') == None:
             original_price = None
-        if departure.find('div', class_='popular-message'):
-            popular_departure = "True"
         else:
-            popular_departure = "False"
+            original_price = departure.find('p', class_='price-strike').text
+        
+        if departure.find('div', class_='popular-message'):
+            popular_departure = True
+        else:
+            popular_departure = False
+        
         listing_status = departure.find('div', class_='listing-status').text.strip()
-        if departure.find('div', class_='listing-buttons-contain').text != None:
-            available_status = departure.find('div', class_='listing-buttons-contain').text.strip()
+        
+        if re.search( "Not Available", departure.find('div', class_='listing-buttons-contain').text):
+            available_status = False
+        else:
+            available_status = True
+        
 
         # print("Departure Date: {}-{}-{}, ".format(date_numbers[0], date_numbers[1], date_numbers[2]))
         # print("Actual Price: {}".format(actual_price))
@@ -59,6 +68,6 @@ def main():
         # print("Popular Departure: {}".format(popular_departure))
         # print("Listing Status: {}".format(listing_status))
         # print("Available Status: {}".format(available_status))
-        print("Departure Date: {}-{}-{}, ".format(date_numbers[0], date_numbers[1], date_numbers[2]), "Actual Price: {}, ".format(actual_price), "Original Price: {}, ".format(original_price), "Popular Departure: {}, ".format(popular_departure), "Listing Status: {}".format(listing_status))
+        print("Departure Date: {}-{}-{}, ".format(date_numbers[0], date_numbers[1], date_numbers[2]), "Actual Price: {}, ".format(actual_price), "Original Price: {}, ".format(original_price), "Popular Departure: {}, ".format(popular_departure), "Listing Status: {}".format(listing_status), "Available Status: {}".format(available_status))
     
 if __name__ == '__main__': main()
