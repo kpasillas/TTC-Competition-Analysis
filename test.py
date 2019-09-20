@@ -3,71 +3,58 @@
 import requests
 import bs4
 import re
+import csv
+from datetime import date
 
 def main():
-    res = requests.get('https://www.globusjourneys.com/tour/canyon-country-adventure/av/?nextyear=true&content=price')
+    
+    today = date.today()
+    file_name = 'globus_data_{}.csv'.format(today.strftime("%m-%d-%y"))
+    
+    with open(file_name, 'a') as new_file:
+        csv_writer = csv.writer(new_file)
 
-    soup = bs4.BeautifulSoup(res.text, 'lxml')
+        field_names = ['trip_name', 'departure_date', 'actual_price_USD', 'original_price_USD', 'popular_departure', 'listing_status', 'availabile']
+        csv_writer.writerow(field_names)
 
-    # departure = soup.find('div', class_='listing')
+    
+        links = ('https://www.globusjourneys.com/tour/canyon-country-adventure/av/?nextyear=true&content=price', 'https://www.globusjourneys.com/tour/americas-historic-east/ah/?nextyear=true&content=price', 'https://www.globusjourneys.com/tour/classic-fall-foliage/ab/?nextyear=true&content=price', 'https://www.globusjourneys.com/tour/historic-trains-of-the-old-west/nc/?nextyear=true&content=price', 'https://www.globusjourneys.com/tour/pacific-coast-adventure/aq/?nextyear=true&content=price')
 
-    # date_numbers = departure.find('p', class_='date-numbers').text.split()
-    # print("Departure Date: {}-{}-{}".format(date_numbers[0], date_numbers[1], date_numbers[2]))
-
-    # actual_price = departure.find('p', class_='price-actual').text
-    # print(actual_price)
-
-    # if departure.find('p', class_='price-strike') != None:
-    #     original_price = departure.find('p', class_='price-strike').text
-    # else:
-    #     original_price = None
-    # print(original_price)
-
-    # if departure.find('div', class_='popular-message') != None:
-    #     popular_departure = departure.find('div', class_='popular-message').text
-    # else:
-    #     popular_departure = "False"
-    # print(popular_departure)
-
-    # listing_status = departure.find('div', class_='listing-status').text
-    # print(listing_status)
-
-    # if departure.find('div', class_='listing-buttons-contain').text != None:
-    #     available_status = departure.find('div', class_='listing-buttons-contain').text
-    #     print((available_status))
-
-    trip_name = soup.find("h1").text
-
-    for departure in soup.find_all('div', class_='listing'):
-
-        date_numbers = departure.find('p', class_='date-numbers').text.split()
+        for link in links:
         
-        actual_price = departure.find('p', class_='price-actual').text.strip()
-        
-        if departure.find('p', class_='price-strike') == None:
-            original_price = None
-        else:
-            original_price = departure.find('p', class_='price-strike').text
-        
-        if departure.find('div', class_='popular-message'):
-            popular_departure = True
-        else:
-            popular_departure = False
-        
-        listing_status = departure.find('div', class_='listing-status').text.strip()
-        
-        if re.search( "Not Available", departure.find('div', class_='listing-buttons-contain').text):
-            available_status = False
-        else:
-            available_status = True
-        
+            res = requests.get(link)
+            soup = bs4.BeautifulSoup(res.text, 'lxml')
 
-        # print("Departure Date: {}-{}-{}, ".format(date_numbers[0], date_numbers[1], date_numbers[2]))
-        # print("Actual Price: {}".format(actual_price))
-        # print("Original Price: {}".format(original_price))
-        # print("Popular Departure: {}".format(popular_departure))
-        # print("Listing Status: {}".format(listing_status))
-        # print("Available Status: {}".format(available_status))
-        print("Trip Name: {}, ".format(trip_name), "Departure Date: {}-{}-{}, ".format(date_numbers[0], date_numbers[1], date_numbers[2]), "Actual Price: {}, ".format(actual_price), "Original Price: {}, ".format(original_price), "Popular Departure: {}, ".format(popular_departure), "Listing Status: {}".format(listing_status), "Available Status: {}".format(available_status))
+            trip_name = soup.find("h1").text
+
+            for departure in soup.find_all('div', class_='listing'):
+
+                date_numbers = departure.find('p', class_='date-numbers').text.split()
+                departure_date = '{}-{}-{}'.format(date_numbers[0], date_numbers[1], date_numbers[2])
+                
+                actual_price = departure.find('p', class_='price-actual').text.strip()
+                
+                if departure.find('p', class_='price-strike') == None:
+                    original_price = None
+                else:
+                    original_price = departure.find('p', class_='price-strike').text
+                
+                if departure.find('div', class_='popular-message'):
+                    popular_departure = True
+                else:
+                    popular_departure = False
+                
+                listing_status = departure.find('div', class_='listing-status').text.strip()
+                
+                if re.search( "Not Available", departure.find('div', class_='listing-buttons-contain').text):
+                    available = False
+                else:
+                    available = True
+                
+                string_to_write = [trip_name,departure_date,actual_price,original_price,popular_departure,listing_status,available]
+
+                csv_writer.writerow(string_to_write)
+                
+            print('{}, done!'.format(trip_name))
     
 if __name__ == '__main__': main()
