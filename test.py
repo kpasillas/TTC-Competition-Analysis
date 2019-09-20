@@ -36,7 +36,7 @@ def main():
     #     available_status = departure.find('div', class_='listing-buttons-contain').text
     #     print((available_status))
 
-
+    trip_name = soup.find("h1").text
 
     for departure in soup.find_all('div', class_='listing'):
 
@@ -68,6 +68,6 @@ def main():
         # print("Popular Departure: {}".format(popular_departure))
         # print("Listing Status: {}".format(listing_status))
         # print("Available Status: {}".format(available_status))
-        print("Departure Date: {}-{}-{}, ".format(date_numbers[0], date_numbers[1], date_numbers[2]), "Actual Price: {}, ".format(actual_price), "Original Price: {}, ".format(original_price), "Popular Departure: {}, ".format(popular_departure), "Listing Status: {}".format(listing_status), "Available Status: {}".format(available_status))
+        print("Trip Name: {}, ".format(trip_name), "Departure Date: {}-{}-{}, ".format(date_numbers[0], date_numbers[1], date_numbers[2]), "Actual Price: {}, ".format(actual_price), "Original Price: {}, ".format(original_price), "Popular Departure: {}, ".format(popular_departure), "Listing Status: {}".format(listing_status), "Available Status: {}".format(available_status))
     
 if __name__ == '__main__': main()
