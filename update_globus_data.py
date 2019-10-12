@@ -102,7 +102,8 @@ def main():
             res = requests.get(link)
             soup = bs4.BeautifulSoup(res.text, 'lxml')
 
-            trip_name = soup.find("h1").text
+            trip_name = soup.find("h1").contents[0]
+            trip_name = trip_name.strip()
             
             for departure in soup.find_all('div', class_='listing'):
 
