@@ -6,6 +6,7 @@ import bs4
 import re
 import csv
 from datetime import date
+from tqdm import tqdm
 
 def main():
 
@@ -98,7 +99,9 @@ def main():
             'https://www.globusjourneys.com/tour/yellowstone-winter-wonderland/aw/?nextyear=true&content=price'
         )
 
-        for link in linksUS:
+        print()
+
+        for link in tqdm(linksUS):
 
             res = requests.get(link)
             soup = bs4.BeautifulSoup(res.text, 'lxml')
@@ -172,6 +175,6 @@ def main():
                 csv_writer.writerow(string_to_write)
                 # print(actual_price)
 
-            print('{}, done!'.format(trip_name))
+        print("\nDone!\n")
 
 if __name__ == '__main__': main()
