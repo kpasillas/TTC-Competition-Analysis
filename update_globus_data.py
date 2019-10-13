@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from selenium import webdriver
 import requests
 import bs4
 import re
@@ -104,6 +105,8 @@ def main():
 
             trip_name = soup.find("h1").contents[0]
             trip_name = trip_name.strip()
+            code = soup.find("h1").contents[1].text
+            code = code.strip("()")
             
             for departure in soup.find_all('div', class_='listing'):
 
@@ -115,10 +118,10 @@ def main():
                 csv_writer.writerow(string_to_write)
                 # print([trip_name,departure_date,'actual_price',actual_price])
                 
-                if departure.find('p', class_='price-strike') == None:
-                    original_price = None
-                else:
+                if departure.find('p', class_='price-strike'):
                     original_price = departure.find('p', class_='price-strike').text
+                else:
+                    original_price = None
                 string_to_write = [trip_name,departure_date,'Original Price USD',original_price]
                 csv_writer.writerow(string_to_write)
                 # print([trip_name,departure_date,'original_price',original_price])
@@ -143,7 +146,32 @@ def main():
                 string_to_write = [trip_name,departure_date,'Available',available]
                 csv_writer.writerow(string_to_write)
                 # print([trip_name,departure_date,'available',available])
-                
+
+            linkAU = "https://www.globus.com.au/booking?tour={}&season=2020".format(code)
+            driver = webdriver.Chrome()
+            driver.get(linkAU)
+            html = driver.execute_script("return document.documentElement.outerHTML")
+            soup = bs4.BeautifulSoup(html, 'lxml')
+
+            for departure in soup.findAll('div', class_='booking-departures__wrapper'):
+
+                date_numbers = departure.find('span', class_='booking-departures__date').text.split()
+                departure_date = "{}-{}-{}".format(date_numbers[0], (date_numbers[1])[0:3], (date_numbers[2])[2:4])
+                # print(departure_date)
+
+                if departure.find('span', class_='booking-departures__price--strike-through'):
+                    original_price = departure.find('span', class_='booking-departures__price--strike-through').text
+                else:
+                    original_price = None
+                string_to_write = [trip_name,departure_date,'Original Price AUD',original_price]
+                csv_writer.writerow(string_to_write)
+                # print(original_price)
+
+                actual_price = departure.find('span', class_='booking-departures__price--amount').text
+                string_to_write = [trip_name,departure_date,'Actual Price AUD',actual_price]
+                csv_writer.writerow(string_to_write)
+                # print(actual_price)
+
             print('{}, done!'.format(trip_name))
 
 if __name__ == '__main__': main()
