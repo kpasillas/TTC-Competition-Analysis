@@ -14,7 +14,7 @@ def main():
     file_name = 'globus_data_{}.csv'.format(today.strftime("%m-%d-%y"))
     
     with open(file_name, 'a') as new_file:
-        csv_writer = csv.writer(new_file)
+        csv_writer = csv.writer(new_file, lineterminator='\n')
 
         field_names = ['Trip Name','Departure Date','field','value']
         csv_writer.writerow(field_names)
