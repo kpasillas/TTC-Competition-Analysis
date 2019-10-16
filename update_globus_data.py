@@ -124,7 +124,7 @@ def main():
                 if departure.find('p', class_='price-strike'):
                     original_price = departure.find('p', class_='price-strike').text
                 else:
-                    original_price = None
+                    original_price = actual_price
                 string_to_write = [trip_name,departure_date,'Original Price USD',original_price]
                 csv_writer.writerow(string_to_write)
                 # print([trip_name,departure_date,'original_price',original_price])
@@ -162,18 +162,18 @@ def main():
                 departure_date = "{}-{}-{}".format(date_numbers[0], (date_numbers[1])[0:3], (date_numbers[2])[2:4])
                 # print(departure_date)
 
-                if departure.find('span', class_='booking-departures__price--strike-through'):
-                    original_price = departure.find('span', class_='booking-departures__price--strike-through').text
-                else:
-                    original_price = None
-                string_to_write = [trip_name,departure_date,'Original Price AUD',original_price]
-                csv_writer.writerow(string_to_write)
-                # print(original_price)
-
                 actual_price = departure.find('span', class_='booking-departures__price--amount').text
                 string_to_write = [trip_name,departure_date,'Actual Price AUD',actual_price]
                 csv_writer.writerow(string_to_write)
                 # print(actual_price)
+                
+                if departure.find('span', class_='booking-departures__price--strike-through'):
+                    original_price = departure.find('span', class_='booking-departures__price--strike-through').text
+                else:
+                    original_price = actual_price
+                string_to_write = [trip_name,departure_date,'Original Price AUD',original_price]
+                csv_writer.writerow(string_to_write)
+                # print(original_price)
 
         print("\nDone!\n")
 
