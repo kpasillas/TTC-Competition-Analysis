@@ -57,7 +57,7 @@ def main():
             'https://www.globusjourneys.com/tour/historic-cities-of-eastern-canada/cc/?nextyear=true&content=price',
             'https://www.globusjourneys.com/tour/historic-trains-of-the-old-west-with-albuquerque-balloon-fiesta/ncs/?nextyear=true&content=price',
             'https://www.globusjourneys.com/tour/historic-trains-of-the-old-west/nc/?nextyear=true&content=price',
-            'https://www.globusjourneys.com/tour/jasper-dark-sky-festival-canadian-rockies-adventure/ce/?content=price',
+            # 'https://www.globusjourneys.com/tour/jasper-dark-sky-festival-canadian-rockies-adventure/ce/?content=price',
             'https://www.globusjourneys.com/tour/legacy-of-the-incas/sp/?nextyear=true&content=price',
             'https://www.globusjourneys.com/tour/mackinac-island-the-great-lakes/nm/?nextyear=true&content=price',
             'https://www.globusjourneys.com/tour/majestic-rockies/cv/?nextyear=true&content=price',
@@ -106,20 +106,21 @@ def main():
             res = requests.get(link)
             soup = bs4.BeautifulSoup(res.text, 'lxml')
 
-            trip_name = soup.find("h1").contents[0]
-            trip_name = trip_name.strip()
-            code = soup.find("h1").contents[1].text
+            trip_name = soup.find("h1").contents[0].text
+            code = soup.find("h1").contents[2].text
             code = code.strip("()")
+            # print('{} - {}'.format(trip_name, code))
             
             for departure in soup.find_all('div', class_='listing'):
 
                 date_numbers = departure.find('p', class_='date-numbers').text.split()
                 departure_date = '{}-{}-{}'.format(date_numbers[0], date_numbers[1], date_numbers[2])
+                # print(departure_date)
                 
                 actual_price = departure.find('p', class_='price-actual').text.strip()
                 string_to_write = [trip_name,departure_date,'Actual Price USD',actual_price]
                 csv_writer.writerow(string_to_write)
-                # print([trip_name,departure_date,'actual_price',actual_price])
+                # print(string_to_write)
                 
                 if departure.find('p', class_='price-strike'):
                     original_price = departure.find('p', class_='price-strike').text
@@ -127,7 +128,7 @@ def main():
                     original_price = actual_price
                 string_to_write = [trip_name,departure_date,'Original Price USD',original_price]
                 csv_writer.writerow(string_to_write)
-                # print([trip_name,departure_date,'original_price',original_price])
+                # print(string_to_write)
                 
                 if departure.find('div', class_='popular-message'):
                     popular_departure = True
@@ -135,12 +136,12 @@ def main():
                     popular_departure = False
                 string_to_write = [trip_name,departure_date,'Popular Departure',popular_departure]
                 csv_writer.writerow(string_to_write)
-                # print([trip_name,departure_date,'popular_departure',popular_departure])
+                # print(string_to_write)
                 
                 listing_status = departure.find('div', class_='listing-status').text.strip()
                 string_to_write = [trip_name,departure_date,'Listing Status',listing_status]
                 csv_writer.writerow(string_to_write)
-                # print([trip_name,departure_date,'listing_status',listing_status])
+                # print(string_to_write)
                 
                 if re.search( "Not Available", departure.find('div', class_='listing-buttons-contain').text):
                     available = False
@@ -148,7 +149,7 @@ def main():
                     available = True
                 string_to_write = [trip_name,departure_date,'Available',available]
                 csv_writer.writerow(string_to_write)
-                # print([trip_name,departure_date,'available',available])
+                # print(string_to_write)
 
             linkAU = "https://www.globus.com.au/booking?tour={}&season=2020".format(code)
             driver = webdriver.Chrome()
@@ -165,7 +166,7 @@ def main():
                 actual_price = departure.find('span', class_='booking-departures__price--amount').text
                 string_to_write = [trip_name,departure_date,'Actual Price AUD',actual_price]
                 csv_writer.writerow(string_to_write)
-                # print(actual_price)
+                # print(string_to_write)
                 
                 if departure.find('span', class_='booking-departures__price--strike-through'):
                     original_price = departure.find('span', class_='booking-departures__price--strike-through').text
@@ -173,7 +174,7 @@ def main():
                     original_price = actual_price
                 string_to_write = [trip_name,departure_date,'Original Price AUD',original_price]
                 csv_writer.writerow(string_to_write)
-                # print(original_price)
+                # print(string_to_write)
 
         print("\nDone!\n")
 
