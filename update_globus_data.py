@@ -57,7 +57,7 @@ def main():
             'https://www.globusjourneys.com/tour/historic-cities-of-eastern-canada/cc/?nextyear=true&content=price',
             'https://www.globusjourneys.com/tour/historic-trains-of-the-old-west-with-albuquerque-balloon-fiesta/ncs/?nextyear=true&content=price',
             'https://www.globusjourneys.com/tour/historic-trains-of-the-old-west/nc/?nextyear=true&content=price',
-            # 'https://www.globusjourneys.com/tour/jasper-dark-sky-festival-canadian-rockies-adventure/ce/?content=price',
+            # 'https://www.globusjourneys.com/tour/jasper-dark-sky-festival-canadian-rockies-adventure/ce/?content=pricez',
             'https://www.globusjourneys.com/tour/legacy-of-the-incas/sp/?nextyear=true&content=price',
             'https://www.globusjourneys.com/tour/mackinac-island-the-great-lakes/nm/?nextyear=true&content=price',
             'https://www.globusjourneys.com/tour/majestic-rockies/cv/?nextyear=true&content=price',
@@ -176,6 +176,8 @@ def main():
                 csv_writer.writerow(string_to_write)
                 # print(string_to_write)
 
+            driver.quit()
+        
         print("\nDone!\n")
 
 if __name__ == '__main__': main()
