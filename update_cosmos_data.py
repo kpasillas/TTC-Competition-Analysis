@@ -61,7 +61,6 @@ def main():
             'https://www.cosmos.com/tour/ultimate-south-america/1200/?nextyear=true&content=price',
             'https://www.cosmos.com/tour/via-rail-and-the-canadian-rockies/8935/?nextyear=true&content=price',
             'https://www.cosmos.com/tour/via-rail-and-the-canadian-rockies-with-alaska-cruise/8940/?nextyear=true&content=price',
-            'https://www.cosmos.com/tour/via-rail-and-the-canadian-rockies/8935/?nextyear=true&content=price',
             'https://www.cosmos.com/tour/western-canada-by-rail-with-alaska-cruise/8934/?nextyear=true&content=price',
             'https://www.cosmos.com/tour/western-canada-with-inside-passage-calgary-stampede/8385/?nextyear=true&content=price',
             'https://www.cosmos.com/tour/western-canada-with-inside-passage/8380/?nextyear=true&content=price',
@@ -144,6 +143,8 @@ def main():
                 string_to_write = [trip_name,departure_date,'Original Price AUD',original_price]
                 csv_writer.writerow(string_to_write)
                 # print(string_to_write)
+
+            driver.quit()
 
         print("\nDone!\n")
 
