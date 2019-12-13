@@ -10,6 +10,7 @@ import bs4
 import re
 import csv
 from datetime import date
+from datetime import datetime
 from time import sleep
 from tqdm import tqdm
 
@@ -21,7 +22,7 @@ def main():
     with open(file_name, 'a') as new_file:
         csv_writer = csv.writer(new_file, lineterminator='\n')
 
-        field_names = ['Trip Name','Departure Date','field','value']
+        field_names = ['Trip Name', 'DepartureID','Departure Date','field','value']
         csv_writer.writerow(field_names)
 
 
@@ -93,6 +94,9 @@ def main():
             soup = bs4.BeautifulSoup(nameElement.get_attribute('innerHTML'), 'lxml')
             trip_name = soup.contents[0].text.strip()
             # print(trip_name)
+            code = link.split('=')[1][:-4].upper()
+            op_code = 'Tauck{}20'.format(code)
+            # print(op_code)
             
             try:
                 calendarElement = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'c-pricing-availability__calendar')))
@@ -113,21 +117,26 @@ def main():
                         departureData = departure.find_elements_by_class_name('data-label')
                         
                         date_numbers = departureData[0].get_attribute('innerHTML').split()
-                        departure_date = '{}-{}-{}'.format(date_numbers[1], date_numbers[0], year)
+                        departure_date = '{:02}-{}-{}'.format(int(date_numbers[1]), date_numbers[0], year)
                         # print(departure_date)
+                        day = '{:02}'.format(int(date_numbers[1]))
+                        month = str(chr((datetime.strptime(date_numbers[0], '%b')).month + 64))
+                        departure_code = '{}{}20a'.format(day, month)
+                        departure_id = '{}-{}'.format(op_code, departure_code)
+                        # print(departure_id)
 
                         departure_type = departureData[2].get_attribute('innerHTML')
-                        string_to_write = [trip_name,departure_date,'Departure Type',departure_type]
+                        string_to_write = [trip_name, departure_id,departure_date,'Departure Type',departure_type]
                         csv_writer.writerow(string_to_write)
                         # print(string_to_write)
 
                         actual_price = departureData[4].get_attribute('innerHTML').strip()
-                        string_to_write = [trip_name,departure_date,'Actual Price USD',actual_price]
+                        string_to_write = [trip_name, departure_id,departure_date,'Actual Price USD',actual_price]
                         csv_writer.writerow(string_to_write)
                         # print(string_to_write)
 
                         available_status = departureData[5].get_attribute('innerHTML')
-                        string_to_write = [trip_name,departure_date,'Available Status',available_status]
+                        string_to_write = [trip_name, departure_id,departure_date,'Available Status',available_status]
                         csv_writer.writerow(string_to_write)
                         # print(string_to_write)
 
