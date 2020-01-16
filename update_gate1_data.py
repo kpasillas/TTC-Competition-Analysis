@@ -11,20 +11,43 @@ def main():
     today = date.today()
     file_name = 'gate1_data_{}.csv'.format(today.strftime("%m-%d-%y"))
     
-    with open(file_name, 'w') as new_file:
+    with open(file_name, 'a') as new_file:
         csv_writer = csv.writer(new_file, lineterminator='\n')
 
         field_names = ['Trip Name','Departure Date','field','value']
         csv_writer.writerow(field_names)
+        # print(field_names)
     
-        linksUS = (
+        linksUS_includeDay = (
             'https://www.gate1travel.com/usa-canada/usa/2020/escorted/alaska-tour-6daknlt20.aspx#prices',
-            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/western-states-tours-8dcamvnprk20.aspx#prices'
+            'https://www.gate1travel.com/latin-america/ecuador-galapagos/2020/escorted/ecuador-tours-5dec120.aspx#prices',
+            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/western-states-tours-8dcamvnprk20.aspx#prices',
+            'https://www.gate1travel.com/latin-america/peru/2020/escorted/south-america-tour-18dsampe20.aspx#prices',
+            'https://www.gate1travel.com/latin-america/ecuador-galapagos/2020/escorted/ecuador-tours-8dclecaa20.aspx#prices',
+            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/western-states-tours-8dclanprk20.aspx#prices',
+            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/western-states-tours-9dclanprkb20.aspx#prices',
+            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/northeast-escorted-10dclneff20.aspx#prices',
+            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/northeast-escorted-9dclneff20.aspx#prices',
+            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-10daffpea20.aspx#prices',
+            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-10daffpe20.aspx#prices',
+            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-14dpeamz20.aspx#prices',
+            # 'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-17daffpegpsis20.aspx#prices',
+            # 'https://www.gate1travel.com/usa-canada/usa/2020/southwest-escorted/mexico-tour-10dccmxtus20.aspx#prices',
+            # 'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-ecuador-17decpe20.aspx#prices',
+            # 'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-ecuador-11decapemft20.aspx#prices',
+            # 'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-6dessmftmia20.aspx#prices',
+            # # 'https://www.discovery-tours.com/small-groups/small-group/2020/small-groups-ecuador-13dgeaa20.aspx#prices',
+            # 'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-7dpemft20.aspx#prices',
+            # 'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-7dpemftmia20.aspx#prices',
+            # 'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-9dpeincsa20.aspx#prices',
+            # 'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-17dpe4dwgpsc20.aspx#prices',
+            # 'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-20dpe6degpsc20.aspx#prices',
+            # 'https://www.gate1travel.com/usa-canada/usa/2020/escorted/southwest-escorted-8dgcnnprk20.aspx#prices'
         )
 
         print()
 
-        for link in tqdm(linksUS):
+        for link in tqdm(linksUS_includeDay):
 
             res = requests.get(link)
             soup = bs4.BeautifulSoup(res.text, 'lxml')
@@ -36,9 +59,18 @@ def main():
 
             for departure in departures_list.find_all('tr', class_='pricerow'):
                 
-                date_numbers = departure.find('button', class_='serviceDate').text.split()
+                if departure.find('del', class_='text-muted'):
+                    date_numbers = departure.find('del', class_='text-muted').text.split()
+                else:
+                    date_numbers = departure.find('button', class_='serviceDate').text.split()
                 departure_date = '{}-{}-20'.format(date_numbers[2], date_numbers[1])
                 # print(departure_date)
+
+                if departure.find('span', class_='text-danger'):
+                    notes = departure.find('span', class_='text-danger').text
+                    string_to_write = [trip_name,departure_date,'Notes',notes]
+                    csv_writer.writerow(string_to_write)
+                    # print(string_to_write)
 
                 if departure.find('td', class_='bookby-price'):
                     prices = departure.find_all('td', class_='text-center')
@@ -47,9 +79,9 @@ def main():
                     csv_writer.writerow(string_to_write)
                     # print(string_to_write)
                     original_price = prices[1].text.strip()
-                    string_to_write = [trip_name,departure_date,'Original Price USD',original_price]
+                    # string_to_write = [trip_name,departure_date,'Original Price USD',original_price]
                     csv_writer.writerow(string_to_write)
-                    # print(string_to_write)
+                    print(string_to_write)
                 else:
                     actual_price = departure.find('td', class_='text-center').text.strip()
                     string_to_write = [trip_name,departure_date,'Actual Price USD',actual_price]
@@ -68,30 +100,35 @@ def main():
 
             departures_list = soup.find('tbody', class_='hidden-xs')
 
-            for departure in departures_list.find_all('tr', class_='pricerow'):
-                
-                date_numbers = departure.find('button', class_='serviceDate').text.split()
-                departure_date = '{}-{}-20'.format(date_numbers[2], date_numbers[1])
-                # print(departure_date)
+            if departures_list:                                            # check is AU site exists
 
-                if departure.find('td', class_='bookby-price'):
-                    prices = departure.find_all('td', class_='text-center')
-                    actual_price = prices[0].text.strip()
-                    string_to_write = [trip_name,departure_date,'Actual Price AUD',actual_price]
-                    csv_writer.writerow(string_to_write)
-                    # print(string_to_write)
-                    original_price = prices[1].text.strip()
-                    string_to_write = [trip_name,departure_date,'Original Price AUD',original_price]
-                    csv_writer.writerow(string_to_write)
-                    # print(string_to_write)
-                else:
-                    actual_price = departure.find('td', class_='text-center').text.strip()
-                    string_to_write = [trip_name,departure_date,'Actual Price AUD',actual_price]
-                    csv_writer.writerow(string_to_write)
-                    # print(string_to_write)
-                    string_to_write = [trip_name,departure_date,'Original Price AUD',actual_price]
-                    csv_writer.writerow(string_to_write)
-                    # print(string_to_write)
+                for departure in departures_list.find_all('tr', class_='pricerow'):
+                    
+                    if departure.find('del', class_='text-muted'):
+                        date_numbers = departure.find('del', class_='text-muted').text.split()
+                    else:
+                        date_numbers = departure.find('button', class_='serviceDate').text.split()
+                    departure_date = '{}-{}-20'.format(date_numbers[2], date_numbers[1])
+                    # print(departure_date)
+
+                    if departure.find('td', class_='bookby-price'):
+                        prices = departure.find_all('td', class_='text-center')
+                        actual_price = prices[0].text.strip()
+                        string_to_write = [trip_name,departure_date,'Actual Price AUD',actual_price]
+                        csv_writer.writerow(string_to_write)
+                        # print(string_to_write)
+                        original_price = prices[1].text.strip()
+                        string_to_write = [trip_name,departure_date,'Original Price AUD',original_price]
+                        csv_writer.writerow(string_to_write)
+                        # print(string_to_write)
+                    else:
+                        actual_price = departure.find('td', class_='text-center').text.strip()
+                        string_to_write = [trip_name,departure_date,'Actual Price AUD',actual_price]
+                        csv_writer.writerow(string_to_write)
+                        # print(string_to_write)
+                        string_to_write = [trip_name,departure_date,'Original Price AUD',actual_price]
+                        csv_writer.writerow(string_to_write)
+                        # print(string_to_write)
 
         print("\nDone!\n")
 
