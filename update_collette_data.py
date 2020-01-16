@@ -5,14 +5,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
-# from selenium.webdriver.common.keys import Keys
-# import requests
 import bs4
-# import re
 import csv
 from datetime import date
-# from datetime import datetime
-# from time import sleep
 from tqdm import tqdm
 
 def main():
@@ -76,6 +71,45 @@ def main():
                         else:
                             original_price = actual_price
                         string_to_write = [trip_name,departure_date,'Original Price USD',original_price]
+                        csv_writer.writerow(string_to_write)
+                        # print(string_to_write)
+
+            finally:
+                driver.quit()
+
+            split_link = link.split('/')
+            linkAU = '{}//{}/{}-au/{}/{}/{}/{}/{}/{}'.format(split_link[0], split_link[2], split_link[3], split_link[4], split_link[5], split_link[6], split_link[7], split_link[8], split_link[9])
+            # print(linkAU)
+
+            driver = webdriver.Chrome()
+            driver.get(linkAU)
+
+            try:
+                WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'date-group-dates')))
+
+                monthElements = driver.find_elements_by_class_name('date-group-dates')
+                for month in monthElements:
+
+                    departureElements = month.find_elements_by_class_name('date-group')
+                    for departure in departureElements:
+
+                        soup = bs4.BeautifulSoup(departure.get_attribute('innerHTML'), 'lxml')
+                        # file.write(soup.prettify())
+
+                        date_numbers = soup.find('div', class_='date').text.split()
+                        departure_date = '{:02}-{}-{}'.format(int(date_numbers[1].strip(',')), date_numbers[0], date_numbers[2])
+                        # print(departure_date)
+
+                        actual_price = soup.find('span', class_='discountedPrice').text.strip()
+                        string_to_write = [trip_name,departure_date,'Actual Price AUD',actual_price]
+                        csv_writer.writerow(string_to_write)
+                        # print(string_to_write)
+
+                        if soup.find('span', class_='crossout'):
+                            original_price = soup.find('span', class_='crossout').text.strip()
+                        else:
+                            original_price = actual_price
+                        string_to_write = [trip_name,departure_date,'Original Price AUD',original_price]
                         csv_writer.writerow(string_to_write)
                         # print(string_to_write)
 
