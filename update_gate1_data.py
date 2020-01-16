@@ -4,6 +4,7 @@ import requests
 import bs4
 import csv
 from datetime import date
+from datetime import datetime
 from tqdm import tqdm
 
 def main():
@@ -14,7 +15,7 @@ def main():
     with open(file_name, 'a') as new_file:
         csv_writer = csv.writer(new_file, lineterminator='\n')
 
-        field_names = ['Trip Name','Departure Date','field','value']
+        field_names = ['Trip Name', 'DepartureID','Departure Date','field','value']
         csv_writer.writerow(field_names)
         # print(field_names)
     
@@ -87,6 +88,9 @@ def main():
 
             trip_name = soup.find("h2").text.strip()
             # print(trip_name)
+            code = link.split('.')[-2].split('-')[-1].upper()
+            op_code = 'Gate1{}'.format(code)
+            # print(op_code)
 
             departures_list = soup.find('tbody', class_='hidden-xs')
 
@@ -99,32 +103,40 @@ def main():
                 
                 if len(date_numbers) == 3:                                                     # check if date format includes day of week
                     departure_date = '{}-{}-20'.format(date_numbers[2], date_numbers[1])
+                    day = '{:02}'.format(int(date_numbers[2]))
+                    month = str(chr((datetime.strptime(date_numbers[1], '%b')).month + 64))
                 else:
                     departure_date = '{}-{}-20'.format(date_numbers[1], date_numbers[0])
+                    day = '{:02}'.format(int(date_numbers[1]))
+                    month = str(chr((datetime.strptime(date_numbers[0], '%b')).month + 64))
                 # print(departure_date)
+                departure_code = '{}{}20a'.format(day, month)
+                departure_id = '{}-{}'.format(op_code, departure_code)
+                # print(departure_id)
+                
 
                 if departure.find('span', class_='text-danger'):
                     notes = departure.find('span', class_='text-danger').text
-                    string_to_write = [trip_name,departure_date,'Notes',notes]
+                    string_to_write = [trip_name,departure_id,departure_date,'Notes',notes]
                     csv_writer.writerow(string_to_write)
                     # print(string_to_write)
 
                 if departure.find('td', class_='bookby-price'):
                     prices = departure.find_all('td', class_='text-center')
                     actual_price = prices[0].text.strip()
-                    string_to_write = [trip_name,departure_date,'Actual Price USD',actual_price]
+                    string_to_write = [trip_name,departure_id,departure_date,'Actual Price USD',actual_price]
                     csv_writer.writerow(string_to_write)
                     # print(string_to_write)
                     original_price = prices[1].text.strip()
-                    string_to_write = [trip_name,departure_date,'Original Price USD',original_price]
+                    string_to_write = [trip_name,departure_id,departure_date,'Original Price USD',original_price]
                     csv_writer.writerow(string_to_write)
                     # print(string_to_write)
                 else:
                     actual_price = departure.find('td', class_='text-center').text.strip()
-                    string_to_write = [trip_name,departure_date,'Actual Price USD',actual_price]
+                    string_to_write = [trip_name,departure_id,departure_date,'Actual Price USD',actual_price]
                     csv_writer.writerow(string_to_write)
                     # print(string_to_write)
-                    string_to_write = [trip_name,departure_date,'Original Price USD',actual_price]
+                    string_to_write = [trip_name,departure_id,departure_date,'Original Price USD',actual_price]
                     csv_writer.writerow(string_to_write)
                     # print(string_to_write)
 
@@ -148,29 +160,38 @@ def main():
                     
                     if len(date_numbers) == 3:                                                     # check if date format includes day of week
                         departure_date = '{}-{}-20'.format(date_numbers[2], date_numbers[1])
+                        day = '{:02}'.format(int(date_numbers[2]))
+                        month = str(chr((datetime.strptime(date_numbers[1], '%b')).month + 64))
                     else:
                         departure_date = '{}-{}-20'.format(date_numbers[1], date_numbers[0])
+                        day = '{:02}'.format(int(date_numbers[1]))
+                        month = str(chr((datetime.strptime(date_numbers[0], '%b')).month + 64))
                     # print(departure_date)
+                    departure_code = '{}{}20a'.format(day, month)
+                    departure_id = '{}-{}'.format(op_code, departure_code)
+                    # print(departure_id)
 
                     if departure.find('td', class_='bookby-price'):
                         prices = departure.find_all('td', class_='text-center')
                         actual_price = prices[0].text.strip()
-                        string_to_write = [trip_name,departure_date,'Actual Price AUD',actual_price]
+                        string_to_write = [trip_name,departure_id,departure_date,'Actual Price AUD',actual_price]
                         csv_writer.writerow(string_to_write)
                         # print(string_to_write)
                         original_price = prices[1].text.strip()
-                        string_to_write = [trip_name,departure_date,'Original Price AUD',original_price]
+                        string_to_write = [trip_name,departure_id,departure_date,'Original Price AUD',original_price]
                         csv_writer.writerow(string_to_write)
                         # print(string_to_write)
                     else:
                         actual_price = departure.find('td', class_='text-center').text.strip()
-                        string_to_write = [trip_name,departure_date,'Actual Price AUD',actual_price]
+                        string_to_write = [trip_name,departure_id,departure_date,'Actual Price AUD',actual_price]
                         csv_writer.writerow(string_to_write)
                         # print(string_to_write)
-                        string_to_write = [trip_name,departure_date,'Original Price AUD',actual_price]
+                        string_to_write = [trip_name,departure_id,departure_date,'Original Price AUD',actual_price]
                         csv_writer.writerow(string_to_write)
                         # print(string_to_write)
 
-        print("\nDone!\n")
+    new_file.close()
+    
+    print("\nDone!\n")
 
 if __name__ == '__main__': main()
