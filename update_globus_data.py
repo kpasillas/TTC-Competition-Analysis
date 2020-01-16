@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 
 from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.common.exceptions import TimeoutException
 import requests
 import bs4
 import re
@@ -161,34 +166,43 @@ def main():
             linkAU = "https://www.globus.com.au/booking?tour={}&season=2020".format(code)
             driver = webdriver.Chrome()
             driver.get(linkAU)
-            html = driver.execute_script("return document.documentElement.outerHTML")
-            soup = bs4.BeautifulSoup(html, 'lxml')
 
-            for departure in soup.findAll('div', class_='booking-departures__wrapper'):
+            try:
+                WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.CLASS_NAME, 'booking-departures__wrapper')))
 
-                date_numbers = departure.find('span', class_='booking-departures__date').text.split()
-                departure_date = "{}-{}-{}".format(date_numbers[0], (date_numbers[1])[0:3], (date_numbers[2])[2:4])
-                # print(departure_date)
-                day = '{:02}'.format(int(date_numbers[0]))
-                month = str(chr((datetime.strptime(date_numbers[1], '%B')).month + 64))
-                departure_code = '{}{}20a'.format(day, month)
-                departure_id = '{}-{}'.format(op_code, departure_code)
-                # print(departure_id)
 
-                actual_price = departure.find('span', class_='booking-departures__price--amount').text
-                string_to_write = [trip_name, departure_id,departure_date,'Actual Price AUD',actual_price]
-                csv_writer.writerow(string_to_write)
-                # print(string_to_write)
+                departureElements = driver.find_elements_by_class_name('booking-departures__wrapper')
+                for departure in departureElements:
+
+                    soup = bs4.BeautifulSoup(departure.get_attribute('innerHTML'), 'lxml')
+
+                    date_numbers = soup.find('span', class_='booking-departures__date').text.split()
+                    departure_date = "{}-{}-{}".format(date_numbers[0], (date_numbers[1])[0:3], (date_numbers[2])[2:4])
+                    # print(departure_date)
+                    day = '{:02}'.format(int(date_numbers[0]))
+                    month = str(chr((datetime.strptime(date_numbers[1], '%B')).month + 64))
+                    departure_code = '{}{}20a'.format(day, month)
+                    departure_id = '{}-{}'.format(op_code, departure_code)
+                    # print(departure_id)
+
+                    actual_price = soup.find('span', class_='booking-departures__price--amount').text
+                    string_to_write = [trip_name, departure_id,departure_date,'Actual Price AUD',actual_price]
+                    csv_writer.writerow(string_to_write)
+                    # print(string_to_write)
                 
-                if departure.find('span', class_='booking-departures__price--strike-through'):
-                    original_price = departure.find('span', class_='booking-departures__price--strike-through').text
-                else:
-                    original_price = actual_price
-                string_to_write = [trip_name, departure_id,departure_date,'Original Price AUD',original_price]
-                csv_writer.writerow(string_to_write)
-                # print(string_to_write)
+                    if soup.find('span', class_='booking-departures__price--strike-through'):
+                        original_price = soup.find('span', class_='booking-departures__price--strike-through').text
+                    else:
+                        original_price = actual_price
+                    string_to_write = [trip_name, departure_id,departure_date,'Original Price AUD',original_price]
+                    csv_writer.writerow(string_to_write)
+                    # print(string_to_write)
 
-            driver.quit()
+            except TimeoutException:
+                driver.quit()
+            
+            finally:
+                driver.quit()
         
         print("\nDone!\n")
 
