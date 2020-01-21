@@ -20,63 +20,63 @@ def main():
         # print(field_names)
     
         linksUS = (
-            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/alaska-tour-6daknlt20.aspx#prices',
-            'https://www.gate1travel.com/latin-america/ecuador-galapagos/2020/escorted/ecuador-tours-5dec120.aspx#prices',
-            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/western-states-tours-8dcamvnprk20.aspx#prices',
-            'https://www.gate1travel.com/latin-america/peru/2020/escorted/south-america-tour-18dsampe20.aspx#prices',
-            'https://www.gate1travel.com/latin-america/ecuador-galapagos/2020/escorted/ecuador-tours-8dclecaa20.aspx#prices',
-            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/western-states-tours-8dclanprk20.aspx#prices',
-            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/western-states-tours-9dclanprkb20.aspx#prices',
-            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/northeast-escorted-10dclneff20.aspx#prices',
-            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/northeast-escorted-9dclneff20.aspx#prices',
-            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-10daffpea20.aspx#prices',
-            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-10daffpe20.aspx#prices',
-            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-14dpeamz20.aspx#prices',
-            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-17daffpegpsis20.aspx#prices',
-            'https://www.gate1travel.com/usa-canada/usa/2020/southwest-escorted/mexico-tour-10dccmxtus20.aspx#prices',
-            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-ecuador-17decpe20.aspx#prices',
-            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-ecuador-11decapemft20.aspx#prices',
-            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-6dessmftmia20.aspx#prices',
-            # 'https://www.discovery-tours.com/small-groups/small-group/2020/small-groups-ecuador-13dgeaa20.aspx#prices',
-            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-7dpemft20.aspx#prices',
-            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-7dpemftmia20.aspx#prices',
-            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-9dpeincsa20.aspx#prices',
-            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-17dpe4dwgpsc20.aspx#prices',
-            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-20dpe6degpsc20.aspx#prices',
-            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/southwest-escorted-8dgcnnprk20.aspx#prices',
-            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/southwest-escorted-7dzbcagnprk19.aspx#prices',
-            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/southwest-escorted-7dzbcagnprk21.aspx#prices',
-            # 'https://www.discovery-tours.com/small-groups/small-group/2020/small-groups-alaska-10daknb20.aspx#prices',
-            'https://www.gate1travel.com/usa-canada/usa/2020/northwest-escorted/alaska-tour-4daknlt20.aspx#prices',
-            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/western-states-tours-9dcagcoystvl20.aspx#prices',
-            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/alaska-tour-9dclaak20.aspx#prices',
-            'https://www.gate1travel.com/usa-canada/usa/2020/northwest-escorted/alaska-cruise-tour-12dakgb20.aspx#prices',
-            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-11daffpebo20.aspx#prices',
-            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-17daffpeg4dpsis20.aspx#prices',
-            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-11daffpenl20.aspx#prices',
-            'https://www.gate1travel.com/latin-america/peru/2020/escorted/deluxe-peru-11ddlxpe20.aspx#prices',
-            'https://www.gate1travel.com/latin-america/ecuador-galapagos/2020/escorted/ecuador-tours-9dec4dngpsc20.aspx#prices',
-            'https://www.gate1travel.com/latin-america/ecuador-galapagos/2020/escorted/ecuador-tours-14dec4dngpsc20.aspx#prices',
-            'https://www.gate1travel.com/latin-america/ecuador-galapagos/2020/escorted/ecuador-tours-9dec4dwgpsc20.aspx#prices',
-            'https://www.gate1travel.com/latin-america/ecuador-galapagos/2020/escorted/ecuador-tours-14dec4dwgpsc20.aspx#prices',
-            'https://www.gate1travel.com/latin-america/ecuador-galapagos/2020/escorted/ecuador-tours-11dec6degpsc20.aspx#prices',
-            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-ecuador-11decapemftmia20.aspx#prices',
-            'https://www.gate1travel.com/latin-america/ecuador-galapagos/2020/escorted/ecuador-tours-12decgpsis20.aspx#prices',
-            'https://www.gate1travel.com/latin-america/ecuador-galapagos/2020/escorted/ecuador-tours-14decgpsis20.aspx#prices',
-            'https://www.gate1travel.com/latin-america/ecuador-galapagos/2020/escorted/ecuador-tours-14dgpsiskalec20.aspx#prices',
-            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/southeast-escorted-7dhso20.aspx#prices',
-            'https://www.gate1travel.com/latin-america/ecuador-galapagos/2020/escorted/ecuador-tours-10dkalec20.aspx#prices',
-            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-12dkalpe20.aspx#prices',
-            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/midwestern-states-tours-8dmlmichi20.aspx#prices',
-            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/southeast-escorted-8dmjts20.aspx#prices',
-            'https://www.gate1travel.com/usa-canada/usa/2020/southwest-escorted/western-states-tours-7dnmela20.aspx#prices',
-            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/northwest-escorted-9dpnwcrg19.aspx#prices',
-            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/northwest-escorted-10dpnwcrgsea20.aspx#prices',
-            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-7dmftnl20.aspx#prices',
-            # 'https://www.discovery-tours.com/small-groups/small-group/2020/small-groups-peru-14dpelgd20.aspx#prices',
-            'https://www.gate1travel.com/usa-canada/usa/2020/northwest-escorted/northwest-escorted-7dsvv20.aspx#prices',
-            'https://www.gate1travel.com/usa-canada/usa/2020/northwest-escorted/alaska-cruise-tour-14dsvvgb20.aspx#prices',
-            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/southwest-escorted-14dultnprk20.aspx#prices'
+            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/southwest-escorted-7dzbcagnprk19.aspx#prices',        # Affordable Zion, Bryce Canyon, Arches & Grand Canyon National Parks
+            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/southwest-escorted-7dzbcagnprk21.aspx#prices',        # Affordable Zion, Bryce Canyon, Arches & Grand Canyon National Parks
+            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/alaska-tour-6daknlt20.aspx#prices',       # Alaska with Northern Lights
+            'https://www.discovery-tours.com/small-groups/small-group/2020/small-groups-alaska-10daknb20.aspx#prices',      # Alaska's Natural Beauty (Small Groups)
+            'https://www.gate1travel.com/usa-canada/usa/2020/northwest-escorted/alaska-tour-4daknlt20.aspx#prices',     # Alaska's Northern Lights
+            'https://www.gate1travel.com/latin-america/ecuador-galapagos/2020/escorted/ecuador-tours-5dec120.aspx#prices',      # Amazon Express
+            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/western-states-tours-9dcagcoystvl20.aspx#prices',     # California with Lake Tahoe & Yosemite National Park
+            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/western-states-tours-8dcamvnprk20.aspx#prices',       # Canyonlands, Arches & Mesa Verde National Parks
+            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/alaska-tour-9dclaak20.aspx#prices',       # Classic Alaska
+            'https://www.gate1travel.com/usa-canada/usa/2020/northwest-escorted/alaska-cruise-tour-12dakgb20.aspx#prices',      # Classic Alaska with 7 Day Cruise
+            'https://www.gate1travel.com/latin-america/peru/2020/escorted/south-america-tour-18dsampe20.aspx#prices',       # Classic Brazil, Argentina & Peru
+            'https://www.gate1travel.com/latin-america/ecuador-galapagos/2020/escorted/ecuador-tours-8dclecaa20.aspx#prices',       # Classic Ecuador & Amazon Adventure
+            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/western-states-tours-8dclanprk20.aspx#prices',        # Classic National Parks, Mt. Rushmore, Yellowstone & Grand Teton
+            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/western-states-tours-9dclanprkb20.aspx#prices',       # Classic National Parks, Mt. Rushmore, Yellowstone & Grand Teton with the Badlands
+            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/northeast-escorted-10dclneff20.aspx#prices',      # Classic New England Fall Foliage (10 day)
+            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/northeast-escorted-9dclneff20.aspx#prices',       # Classic New England Fall Foliage (9 day)
+            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-10daffpea20.aspx#prices',      # Classic Peru - Plan A Hotels
+            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-10daffpe20.aspx#prices',       # Classic Peru - Plan B Hotels
+            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-11daffpebo20.aspx#prices',     # Classic Peru & Bolivia
+            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-14dpeamz20.aspx#prices',       # Classic Peru with Amazon Experience
+            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-17daffpegpsis20.aspx#prices',      # Classic Peru with Ecuador & 3 Day Galapagos Islands
+            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-17daffpeg4dpsis20.aspx#prices',        # Classic Peru with Ecuador & 4 Day Galapagos Islands
+            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-11daffpenl20.aspx#prices',     # Classic Peru with Nazca Lines
+            'https://www.gate1travel.com/usa-canada/usa/2020/southwest-escorted/mexico-tour-10dccmxtus20.aspx#prices',      # Copper Canyon: Mexico & Tucson
+            'https://www.gate1travel.com/latin-america/peru/2020/escorted/deluxe-peru-11ddlxpe20.aspx#prices',      # Deluxe Peru
+            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-ecuador-17decpe20.aspx#prices',      # Ecuador & Peru
+            'https://www.gate1travel.com/latin-america/ecuador-galapagos/2020/escorted/ecuador-tours-9dec4dngpsc20.aspx#prices',        # Ecuador with 4 Day Northern Galapagos Cruise
+            'https://www.gate1travel.com/latin-america/ecuador-galapagos/2020/escorted/ecuador-tours-14dec4dngpsc20.aspx#prices',       # Ecuador with 4 Day Northern Galapagos Cruise
+            'https://www.gate1travel.com/latin-america/ecuador-galapagos/2020/escorted/ecuador-tours-9dec4dwgpsc20.aspx#prices',        # Ecuador with 4 Day Western Galapagos Cruise
+            'https://www.gate1travel.com/latin-america/ecuador-galapagos/2020/escorted/ecuador-tours-14dec4dwgpsc20.aspx#prices',       # Ecuador with 4 Day Western Galapagos Cruise
+            'https://www.gate1travel.com/latin-america/ecuador-galapagos/2020/escorted/ecuador-tours-11dec6degpsc20.aspx#prices',       # Ecuador with 6 Day Eastern Galapagos Cruise
+            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-ecuador-11decapemft20.aspx#prices',      # Ecuador, the Amazon & Peru with Machu Picchu
+            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-ecuador-11decapemftmia20.aspx#prices',       # Ecuador, the Amazon & Peru with Machu Picchu (Miami Special)
+            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-6dessmftmia20.aspx#prices',        # Essential Machu Picchu (Miami Special)
+            'https://www.gate1travel.com/latin-america/ecuador-galapagos/2020/escorted/ecuador-tours-12decgpsis20.aspx#prices',     # Galapagos Islands & Ecuador
+            'https://www.gate1travel.com/latin-america/ecuador-galapagos/2020/escorted/ecuador-tours-14decgpsis20.aspx#prices',     # Galapagos Islands & Ecuador
+            'https://www.gate1travel.com/latin-america/ecuador-galapagos/2020/escorted/ecuador-tours-14dgpsiskalec20.aspx#prices',      # Galapagos Islands & Kaleidoscope of Ecuador
+            'https://www.discovery-tours.com/small-groups/small-group/2020/small-groups-ecuador-13dgeaa20.aspx#prices',     # Galapagos, Ecuador, Andes & Amazon
+            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/southeast-escorted-7dhso20.aspx#prices',      # Historical South
+            'https://www.gate1travel.com/latin-america/ecuador-galapagos/2020/escorted/ecuador-tours-10dkalec20.aspx#prices',       # Kaleidoscope of Ecuador with Andes Mountains & Amazon
+            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-12dkalpe20.aspx#prices',       # Kaleidoscope of Peru
+            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/midwestern-states-tours-8dmlmichi20.aspx#prices',     # Michigan's Lakes & Mackinac Island with Chicago
+            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/southeast-escorted-8dmjts20.aspx#prices',     # Musical Journey Through the South
+            'https://www.gate1travel.com/usa-canada/usa/2020/southwest-escorted/western-states-tours-7dnmela20.aspx#prices',        # New Mexico Landscapes & Pueblo Life
+            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/northwest-escorted-9dpnwcrg19.aspx#prices',       # Pacific Northwest with Columbia River Gorge
+            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/northwest-escorted-10dpnwcrgsea20.aspx#prices',       # Pacific Northwest with Columbia River Gorge & Seattle
+            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-7dpemft20.aspx#prices',        # Peru & Machu Picchu
+            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-7dpemftmia20.aspx#prices',     # Peru & Machu Picchu (Miami Special)
+            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-9dpeincsa20.aspx#prices',      # Peru Inca Special
+            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-17dpe4dwgpsc20.aspx#prices',       # Peru with 4 Day Western Galapagos Cruise
+            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-20dpe6degpsc20.aspx#prices',       # Peru with 6 Day Eastern Galapagos Cruise
+            'https://www.gate1travel.com/latin-america/peru/2020/escorted/peru-tours-7dmftnl20.aspx#prices',        # Peru's Machu Picchu & Nazca Lines
+            'https://www.discovery-tours.com/small-groups/small-group/2020/small-groups-peru-14dpelgd20.aspx#prices',       # Peruvian Legends (Small Groups)
+            'https://www.gate1travel.com/usa-canada/usa/2020/northwest-escorted/northwest-escorted-7dsvv20.aspx#prices',        # Seattle, Victoria & Vancouver
+            'https://www.gate1travel.com/usa-canada/usa/2020/northwest-escorted/alaska-cruise-tour-14dsvvgb20.aspx#prices',     # Seattle, Victoria & Vancouver with 7 Day Alaskan Cruise
+            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/southwest-escorted-14dultnprk20.aspx#prices',     # Ultimate National Parks
+            'https://www.gate1travel.com/usa-canada/usa/2020/escorted/southwest-escorted-8dgcnnprk20.aspx#prices'       # Zion, Bryce Canyon & Grand Canyon National Parks
         )
 
         print()
