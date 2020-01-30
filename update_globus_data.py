@@ -178,11 +178,12 @@ def main():
                     soup = bs4.BeautifulSoup(departure.get_attribute('innerHTML'), 'lxml')
 
                     date_numbers = soup.find('span', class_='booking-departures__date').text.split()
-                    departure_date = "{}-{}-{}".format(date_numbers[0], (date_numbers[1])[0:3], (date_numbers[2])[2:4])
+                    departure_date = "{:02}-{}-{}".format(int(date_numbers[0]), (date_numbers[1])[0:3], date_numbers[2])
                     # print(departure_date)
                     day = '{:02}'.format(int(date_numbers[0]))
                     month = str(chr((datetime.strptime(date_numbers[1], '%B')).month + 64))
-                    departure_code = '{}{}20a'.format(day, month)
+                    year = date_numbers[2][-2:]
+                    departure_code = '{}{}{}a'.format(day, month, year)
                     departure_id = '{}-{}'.format(op_code, departure_code)
                     # print(departure_id)
 
