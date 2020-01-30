@@ -22,7 +22,7 @@ def main():
     with open(file_name, 'a') as new_file:
         csv_writer = csv.writer(new_file, lineterminator='\n')
 
-        field_names = ['Trip Name', 'DepartureID','Departure Date','field','value']
+        field_names = ['Trip Name','DepartureID','Departure Date','field','value']
         csv_writer.writerow(field_names)
 
         linksUS = (
@@ -91,11 +91,12 @@ def main():
             for departure in soup.find_all('div', class_='listing'):
 
                 date_numbers = departure.find('p', class_='date-numbers').text.split()
-                departure_date = '{}-{}-{}'.format(date_numbers[0], date_numbers[1], date_numbers[2])
+                departure_date = '{:02}-{}-20{}'.format(int(date_numbers[0]), date_numbers[1], date_numbers[2])
                 # print(departure_date)
                 day = '{:02}'.format(int(date_numbers[0]))
                 month = str(chr((datetime.strptime(date_numbers[1], '%b')).month + 64))
-                departure_code = '{}{}20a'.format(day, month)
+                year = date_numbers[2][-2:]
+                departure_code = '{}{}{}a'.format(day, month, year)
                 departure_id = '{}-{}'.format(op_code, departure_code)
                 # print(departure_id)
                 
@@ -108,7 +109,7 @@ def main():
                     original_price = departure.find('p', class_='price-strike').text
                 else:
                     original_price = actual_price
-                string_to_write = [trip_name, departure_id,departure_date,'Original Price USD',original_price]
+                string_to_write = [trip_name,departure_id,departure_date,'Original Price USD',original_price]
                 csv_writer.writerow(string_to_write)
                 # print(string_to_write)
                 
@@ -116,12 +117,12 @@ def main():
                     popular_departure = True
                 else:
                     popular_departure = False
-                string_to_write = [trip_name, departure_id,departure_date,'Popular Departure',popular_departure]
+                string_to_write = [trip_name,departure_id,departure_date,'Popular Departure',popular_departure]
                 csv_writer.writerow(string_to_write)
                 # print(string_to_write)
                 
                 listing_status = departure.find('div', class_='listing-status').text.strip()
-                string_to_write = [trip_name, departure_id,departure_date,'Listing Status',listing_status]
+                string_to_write = [trip_name,departure_id,departure_date,'Listing Status',listing_status]
                 csv_writer.writerow(string_to_write)
                 # print(string_to_write)
                 
@@ -129,7 +130,7 @@ def main():
                     available = False
                 else:
                     available = True
-                string_to_write = [trip_name, departure_id,departure_date,'Available',available]
+                string_to_write = [trip_name,departure_id,departure_date,'Available',available]
                 csv_writer.writerow(string_to_write)
                 # print(string_to_write)
 
@@ -146,11 +147,12 @@ def main():
                     soup = bs4.BeautifulSoup(departure.get_attribute('innerHTML'), 'lxml')
 
                     date_numbers = soup.find('span', class_='booking-departures__date').text.split()
-                    departure_date = "{}-{}-{}".format(date_numbers[0], (date_numbers[1])[0:3], (date_numbers[2])[2:4])
+                    departure_date = "{:02}-{}-{}".format(int(date_numbers[0]), (date_numbers[1])[0:3], date_numbers[2])
                     # print(departure_date)
                     day = '{:02}'.format(int(date_numbers[0]))
                     month = str(chr((datetime.strptime(date_numbers[1], '%B')).month + 64))
-                    departure_code = '{}{}20a'.format(day, month)
+                    year = date_numbers[2][-2:]
+                    departure_code = '{}{}{}a'.format(day, month, year)
                     departure_id = '{}-{}'.format(op_code, departure_code)
                     # print(departure_id)
 
