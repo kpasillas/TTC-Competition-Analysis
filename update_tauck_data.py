@@ -25,8 +25,9 @@ def main():
         field_names = ['Trip Name', 'DepartureID','Departure Date','field','value']
         csv_writer.writerow(field_names)
 
-
-        linksUS = (
+        year = '2020'                     # OK to hard-code year value since separate links/report are needed for 2021
+        
+        linksUS = (                     # 45 total, 9 cruise (don't count)
             'https://www.tauck.com/tours/celebration-of-roses-escorted-tour-event?tcd=vr2020',      # A Celebration of Roses
             'https://www.tauck.com/tours/call-of-wild-alaska-guided-family-tour?tcd=ya2020',        # Alaska: Call of the Wild
             # 'https://www.tauck.com/tours/inside-passage-alaska-small-ship-cruise?tcd=xan2020',      # Alaska's Inside Passage
@@ -58,7 +59,7 @@ def main():
             'https://www.tauck.com/tours/hidden-gems-new-england-guided-tour?tcd=ne2020',       # Hidden Gems of New England
             'https://www.tauck.com/tours/freedom-footsteps-philidelphia-washington-dc-guided-tour?tcd=wb2020',      # In Freedom's Footsteps: Philadelphia to Washington, DC
             'https://www.tauck.com/tours/legends-american-west-national-park-escorted-tour?tcd=jh2020',     # Legends of the American West
-            'https://www.tauck.com/tours/san-francisco-yosemite-majestic-california-guided-family-tour?tcd=yp2020',     # Majestic California: San Francisco, Yosemite & the Pacific
+            'https://www.tauck.com/tours/california-family-tours-with-yosemite?tcd=yp2020',     # Majestic California: San Francisco, Yosemite & the Pacific
             'https://www.tauck.com/tours/manitoba-polar-bear-tours?tcd=vm2020',     # Manitoba: Polar Bear Adventure
             'https://www.tauck.com/tours/michigan-lakes-mackinac-island-escorted-tour?tcd=mi2020',      # Michigan's Lakes & Mackinac Island
             'https://www.tauck.com/tours/mystical-peru-family-vacation-package?tcd=zp2020',     # Mystical Peru
@@ -77,7 +78,7 @@ def main():
             # 'https://www.tauck.com/tours/costa-rica-and-panama-canal-cruise?tcd=pce2020',       # The Panama Canal & Costa Rica
             'https://www.tauck.com/tours/canadian-rockies-by-train?tcd=mt2020',     # Vancouver & the Rockies by Rocky Mountaineer
             'https://www.tauck.com/tours/wonderland-yellowstone-winter-escorted-tour?tcd=vw2020',       # Wonderland: Yellowstone in Winter
-            'https://www.tauck.com/tours/wonders-canadian-rockies-escorted-tours?tcd=yr2020',       # Wonders of the Canadian Rockies
+            'https://www.tauck.com/tours/canadian-rockies-family-tour?tcd=yr2020',       # Wonders of the Canadian Rockies
             'https://www.tauck.com/tours/grand-teton-yellowstone-escorted-tour?tcd=sln2020',        # Yellowstone & Grand Teton National Parks
             'https://www.tauck.com/tours/american-safari-tetons-yellowstone-escorted-tour?tcd=vy2020',      # Yellowstone & the Tetons: American Safari
             'https://www.tauck.com/tours/yosemite-and-sequoia-escorted-tour?tcd=km2020'     # Yostemite and Sequoia: John Muir's California
@@ -95,52 +96,42 @@ def main():
             trip_name = soup.contents[0].text.strip()
             # print(trip_name)
             code = link.split('=')[1][:-4].upper()
-            op_code = 'Tauck{}20'.format(code)
+            op_code = 'Tauck{}{}'.format(code, year[-2:])
             # print(op_code)
             
             try:
-                calendarElement = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'c-pricing-availability__calendar')))
+                calendarElement = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'sheet__data')))
                 
-                monthItems = calendarElement.find_elements_by_class_name('month-item')
-                for month in monthItems:
-                    
-                    ActionChains(driver).click(month).perform()
-                    sleep(0.5)                                      # manually wait for departure info to load after month clicked, ideally replaced by 'WebDriverWait'
-                    # monthElement = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'sheet__data__wrapper')))
-
-                    yearElement = month.find_element_by_class_name('label-year')
-                    year = yearElement.get_attribute('innerHTML')
-                    
-                    departureItems = calendarElement.find_elements_by_class_name('sheet__data__wrapper')
-                    for departure in departureItems:
+                departureItems = calendarElement.find_elements_by_class_name('sheet__data__wrapper')
+                for departure in departureItems:
                         
-                        departureData = departure.find_elements_by_class_name('data-label')
+                    departureData = departure.find_elements_by_class_name('data-label')
                         
-                        date_numbers = departureData[0].get_attribute('innerHTML').split()
-                        departure_date = '{:02}-{}-{}'.format(int(date_numbers[1]), date_numbers[0], year)
-                        # print(departure_date)
-                        day = '{:02}'.format(int(date_numbers[1]))
-                        month = str(chr((datetime.strptime(date_numbers[0], '%b')).month + 64))
-                        departure_code = '{}{}20a'.format(day, month)
-                        departure_id = '{}-{}'.format(op_code, departure_code)
-                        # print(departure_id)
+                    date_numbers = departureData[0].get_attribute('innerHTML').split()
+                    departure_date = '{:02}-{}-{}'.format(int(date_numbers[1]), date_numbers[0], year)
+                    # print(departure_date)
+                    day = '{:02}'.format(int(date_numbers[1]))
+                    month = str(chr((datetime.strptime(date_numbers[0], '%b')).month + 64))
+                    departure_code = '{}{}{}a'.format(day, month, year[-2:])
+                    departure_id = '{}-{}'.format(op_code, departure_code)
+                    # print(departure_id)
 
-                        departure_type = departureData[2].get_attribute('innerHTML')
-                        string_to_write = [trip_name, departure_id,departure_date,'Departure Type',departure_type]
-                        csv_writer.writerow(string_to_write)
-                        # print(string_to_write)
+                    departure_type = departureData[2].get_attribute('innerHTML')
+                    string_to_write = [trip_name, departure_id,departure_date,'Departure Type',departure_type]
+                    csv_writer.writerow(string_to_write)
+                    # print(string_to_write)
 
-                        actual_price = departureData[4].get_attribute('innerHTML').strip()
-                        string_to_write = [trip_name, departure_id,departure_date,'Actual Price USD',actual_price]
-                        csv_writer.writerow(string_to_write)
-                        # print(string_to_write)
+                    actual_price = departureData[4].get_attribute('innerHTML').strip()
+                    string_to_write = [trip_name, departure_id,departure_date,'Actual Price USD',actual_price]
+                    csv_writer.writerow(string_to_write)
+                    # print(string_to_write)
 
-                        available_status = departureData[5].get_attribute('innerHTML')
-                        string_to_write = [trip_name, departure_id,departure_date,'Available Status',available_status]
-                        csv_writer.writerow(string_to_write)
-                        # print(string_to_write)
+                    available_status = departureData[5].get_attribute('innerHTML')
+                    string_to_write = [trip_name, departure_id,departure_date,'Available Status',available_status]
+                    csv_writer.writerow(string_to_write)
+                    # print(string_to_write)
 
-                        # print()
+                    # print()
 
 
             finally:
