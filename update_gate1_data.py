@@ -15,11 +15,11 @@ def main():
     with open(file_name, 'a') as new_file:
         csv_writer = csv.writer(new_file, lineterminator='\n')
 
-        field_names = ['Trip Name', 'DepartureID','Departure Date','field','value']
+        field_names = ['Trip Name','DepartureID','Departure Date','field','value']
         csv_writer.writerow(field_names)
         # print(field_names)
     
-        linksUS = (
+        linksUS = (                 # 56 total names (not counting Mexico since removed from website)
             'https://www.gate1travel.com/usa-canada/usa/2020/escorted/southwest-escorted-7dzbcagnprk19.aspx#prices',        # Affordable Zion, Bryce Canyon, Arches & Grand Canyon National Parks
             'https://www.gate1travel.com/usa-canada/usa/2020/escorted/southwest-escorted-7dzbcagnprk21.aspx#prices',        # Affordable Zion, Bryce Canyon, Arches & Grand Canyon National Parks
             'https://www.gate1travel.com/usa-canada/usa/2020/escorted/alaska-tour-6daknlt20.aspx#prices',       # Alaska with Northern Lights
@@ -92,53 +92,68 @@ def main():
             op_code = 'Gate1{}'.format(code)
             # print(op_code)
 
-            departures_list = soup.find('tbody', class_='hidden-xs')
+            data_table = soup.find('table', class_='date-price-table')
+            hidden_xs_items = data_table.find_all(class_='hidden-xs')
+            year = hidden_xs_items[0].text.split()[0]
+            
+            for hidden_xs_item in hidden_xs_items:
+                table_rows = hidden_xs_item.find_all('tr')
+                for row in table_rows:
 
-            for departure in departures_list.find_all('tr', class_='pricerow'):
-                
-                if departure.find('del', class_='text-muted'):                          # check if date is crossed-off (Sold Out)
-                    date_numbers = departure.find('del', class_='text-muted').text.split()
-                else:
-                    date_numbers = departure.find('button', class_='serviceDate').text.split()
-                
-                if len(date_numbers) == 3:                                                     # check if date format includes day of week
-                    departure_date = '{}-{}-20'.format(date_numbers[2], date_numbers[1])
-                    day = '{:02}'.format(int(date_numbers[2]))
-                    month = str(chr((datetime.strptime(date_numbers[1], '%b')).month + 64))
-                else:
-                    departure_date = '{}-{}-20'.format(date_numbers[1], date_numbers[0])
-                    day = '{:02}'.format(int(date_numbers[1]))
-                    month = str(chr((datetime.strptime(date_numbers[0], '%b')).month + 64))
-                # print(departure_date)
-                departure_code = '{}{}20a'.format(day, month)
-                departure_id = '{}-{}'.format(op_code, departure_code)
-                # print(departure_id)
-                
+                    if row.find(class_='h4'):             # look for "YEAR Dates & Prices" if multiple years on same page
+                        year = row.find('th').text.split()[0]
+                    
+                    elif row.get('class') == ['pricerow']:             # look for departure row
+                        departure = row
+              
+                        if departure.find('del', class_='text-muted'):                          # check if date is crossed-off (Sold Out or Cancelled)
+                            date_numbers = departure.find('del', class_='text-muted').text.split()
+                            available = False
+                        elif departure.find('button', class_='serviceDate'):
+                            date_numbers = departure.find('button', class_='serviceDate').text.split()
+                            available = True
+                        
+                        if len(date_numbers) == 3:                                                     # check if date format includes day of week
+                            departure_date = '{}-{}-{}'.format(date_numbers[2], date_numbers[1], year)
+                            day = '{:02}'.format(int(date_numbers[2]))
+                            month = str(chr((datetime.strptime(date_numbers[1], '%b')).month + 64))
+                        else:
+                            departure_date = '{}-{}-{}'.format(date_numbers[1], date_numbers[0], year)
+                            day = '{:02}'.format(int(date_numbers[1]))
+                            month = str(chr((datetime.strptime(date_numbers[0], '%b')).month + 64))
+                        # print(departure_date)
+                        departure_code = '{}{}{}a'.format(day, month, year[-2:])
+                        departure_id = '{}-{}'.format(op_code, departure_code)
+                        # print(departure_id)
+                        
+                        string_to_write = [trip_name,departure_id,departure_date,'Available',available]
+                        csv_writer.writerow(string_to_write)
+                        # print(string_to_write)
 
-                if departure.find('span', class_='text-danger'):
-                    notes = departure.find('span', class_='text-danger').text
-                    string_to_write = [trip_name,departure_id,departure_date,'Notes',notes]
-                    csv_writer.writerow(string_to_write)
-                    # print(string_to_write)
+                        if departure.find('span', class_='text-danger'):
+                            notes = departure.find('span', class_='text-danger').text
+                            string_to_write = [trip_name,departure_id,departure_date,'Notes',notes]
+                            csv_writer.writerow(string_to_write)
+                            # print(string_to_write)
 
-                if departure.find('td', class_='bookby-price'):
-                    prices = departure.find_all('td', class_='text-center')
-                    actual_price = prices[0].text.strip()
-                    string_to_write = [trip_name,departure_id,departure_date,'Actual Price USD',actual_price]
-                    csv_writer.writerow(string_to_write)
-                    # print(string_to_write)
-                    original_price = prices[1].text.strip()
-                    string_to_write = [trip_name,departure_id,departure_date,'Original Price USD',original_price]
-                    csv_writer.writerow(string_to_write)
-                    # print(string_to_write)
-                else:
-                    actual_price = departure.find('td', class_='text-center').text.strip()
-                    string_to_write = [trip_name,departure_id,departure_date,'Actual Price USD',actual_price]
-                    csv_writer.writerow(string_to_write)
-                    # print(string_to_write)
-                    string_to_write = [trip_name,departure_id,departure_date,'Original Price USD',actual_price]
-                    csv_writer.writerow(string_to_write)
-                    # print(string_to_write)
+                        if departure.find('td', class_='bookby-price'):
+                            prices = departure.find_all('td', class_='text-center')
+                            actual_price = prices[0].text.strip()
+                            string_to_write = [trip_name,departure_id,departure_date,'Actual Price USD',actual_price]
+                            csv_writer.writerow(string_to_write)
+                            # print(string_to_write)
+                            original_price = prices[1].text.strip()
+                            string_to_write = [trip_name,departure_id,departure_date,'Original Price USD',original_price]
+                            csv_writer.writerow(string_to_write)
+                            # print(string_to_write)
+                        else:
+                            actual_price = departure.find('td', class_='text-center').text.strip()
+                            string_to_write = [trip_name,departure_id,departure_date,'Actual Price USD',actual_price]
+                            csv_writer.writerow(string_to_write)
+                            # print(string_to_write)
+                            string_to_write = [trip_name,departure_id,departure_date,'Original Price USD',actual_price]
+                            csv_writer.writerow(string_to_write)
+                            # print(string_to_write)
 
             split_link = link.split('/')
             linkAU = '{}//{}.au/{}/{}/{}/{}/{}'.format(split_link[0], split_link[2], split_link[3], split_link[4], split_link[5], split_link[6], split_link[7])
@@ -147,48 +162,57 @@ def main():
             res = requests.get(linkAU)
             soup = bs4.BeautifulSoup(res.text, 'lxml')
 
-            departures_list = soup.find('tbody', class_='hidden-xs')
+            if soup.find('table', class_='date-price-table'):                                            # check is AU site exists
 
-            if departures_list:                                            # check is AU site exists
+                data_table = soup.find('table', class_='date-price-table')
+                hidden_xs_items = data_table.find_all(class_='hidden-xs')
+                year = hidden_xs_items[0].text.split()[0]
+                for hidden_xs_item in hidden_xs_items:
+                    table_rows = hidden_xs_item.find_all('tr')
+                    for row in table_rows:
 
-                for departure in departures_list.find_all('tr', class_='pricerow'):
-                    
-                    if departure.find('del', class_='text-muted'):                          # check if date is crossed-off (Sold Out)
-                        date_numbers = departure.find('del', class_='text-muted').text.split()
-                    else:
-                        date_numbers = departure.find('button', class_='serviceDate').text.split()
-                    
-                    if len(date_numbers) == 3:                                                     # check if date format includes day of week
-                        departure_date = '{}-{}-20'.format(date_numbers[2], date_numbers[1])
-                        day = '{:02}'.format(int(date_numbers[2]))
-                        month = str(chr((datetime.strptime(date_numbers[1], '%b')).month + 64))
-                    else:
-                        departure_date = '{}-{}-20'.format(date_numbers[1], date_numbers[0])
-                        day = '{:02}'.format(int(date_numbers[1]))
-                        month = str(chr((datetime.strptime(date_numbers[0], '%b')).month + 64))
-                    # print(departure_date)
-                    departure_code = '{}{}20a'.format(day, month)
-                    departure_id = '{}-{}'.format(op_code, departure_code)
-                    # print(departure_id)
-
-                    if departure.find('td', class_='bookby-price'):
-                        prices = departure.find_all('td', class_='text-center')
-                        actual_price = prices[0].text.strip()
-                        string_to_write = [trip_name,departure_id,departure_date,'Actual Price AUD',actual_price]
-                        csv_writer.writerow(string_to_write)
-                        # print(string_to_write)
-                        original_price = prices[1].text.strip()
-                        string_to_write = [trip_name,departure_id,departure_date,'Original Price AUD',original_price]
-                        csv_writer.writerow(string_to_write)
-                        # print(string_to_write)
-                    else:
-                        actual_price = departure.find('td', class_='text-center').text.strip()
-                        string_to_write = [trip_name,departure_id,departure_date,'Actual Price AUD',actual_price]
-                        csv_writer.writerow(string_to_write)
-                        # print(string_to_write)
-                        string_to_write = [trip_name,departure_id,departure_date,'Original Price AUD',actual_price]
-                        csv_writer.writerow(string_to_write)
-                        # print(string_to_write)
+                        if row.find(class_='h4'):             # look for "YEAR Dates & Prices" if multiple years on same page
+                            year = row.find('th').text.split()[0]
+                        
+                        elif row.get('class') == ['pricerow']:             # look for departure row
+                            departure = row
+                
+                            if departure.find('del', class_='text-muted'):                          # check if date is crossed-off (Sold Out or Cancelled)
+                                date_numbers = departure.find('del', class_='text-muted').text.split()
+                            elif departure.find('button', class_='serviceDate'):
+                                date_numbers = departure.find('button', class_='serviceDate').text.split()
+                            
+                            if len(date_numbers) == 3:                                                     # check if date format includes day of week
+                                departure_date = '{}-{}-{}'.format(date_numbers[2], date_numbers[1], year)
+                                day = '{:02}'.format(int(date_numbers[2]))
+                                month = str(chr((datetime.strptime(date_numbers[1], '%b')).month + 64))
+                            else:
+                                departure_date = '{}-{}-{}'.format(date_numbers[1], date_numbers[0], year)
+                                day = '{:02}'.format(int(date_numbers[1]))
+                                month = str(chr((datetime.strptime(date_numbers[0], '%b')).month + 64))
+                            # print(departure_date)
+                            departure_code = '{}{}{}a'.format(day, month, year[-2:])
+                            departure_id = '{}-{}'.format(op_code, departure_code)
+                            # print(departure_id)
+                            
+                            if departure.find('td', class_='bookby-price'):
+                                prices = departure.find_all('td', class_='text-center')
+                                actual_price = prices[0].text.strip()
+                                string_to_write = [trip_name,departure_id,departure_date,'Actual Price AUD',actual_price]
+                                csv_writer.writerow(string_to_write)
+                                # print(string_to_write)
+                                original_price = prices[1].text.strip()
+                                string_to_write = [trip_name,departure_id,departure_date,'Original Price AUD',original_price]
+                                csv_writer.writerow(string_to_write)
+                                # print(string_to_write)
+                            else:
+                                actual_price = departure.find('td', class_='text-center').text.strip()
+                                string_to_write = [trip_name,departure_id,departure_date,'Actual Price AUD',actual_price]
+                                csv_writer.writerow(string_to_write)
+                                # print(string_to_write)
+                                string_to_write = [trip_name,departure_id,departure_date,'Original Price AUD',actual_price]
+                                csv_writer.writerow(string_to_write)
+                                # print(string_to_write)
 
     new_file.close()
     
