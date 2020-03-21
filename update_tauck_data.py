@@ -98,6 +98,8 @@ def main():
             code = link.split('=')[1][:-4].upper()
             op_code = 'Tauck{}{}'.format(code, year[-2:])
             # print(op_code)
+            previous_departure_date = ''
+            duplicate_departure_count = 0
             
             try:
                 calendarElement = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'sheet__data')))
@@ -110,9 +112,16 @@ def main():
                     date_numbers = departureData[0].get_attribute('innerHTML').split()
                     departure_date = '{:02}-{}-{}'.format(int(date_numbers[1]), date_numbers[0], year)
                     # print(departure_date)
+
+                    if departure_date == previous_departure_date:                   # check if duplicate departure
+                        duplicate_departure_count += 1
+                    else:
+                        duplicate_departure_count = 0
+
+                    departure_letter = str(chr(duplicate_departure_count + 97))
                     day = '{:02}'.format(int(date_numbers[1]))
                     month = str(chr((datetime.strptime(date_numbers[0], '%b')).month + 64))
-                    departure_code = '{}{}{}a'.format(day, month, year[-2:])
+                    departure_code = '{}{}{}{}'.format(day, month, year, departure_letter)
                     departure_id = '{}-{}'.format(op_code, departure_code)
                     # print(departure_id)
 
@@ -130,6 +139,8 @@ def main():
                     string_to_write = [trip_name, departure_id,departure_date,'Available Status',available_status]
                     csv_writer.writerow(string_to_write)
                     # print(string_to_write)
+
+                    previous_departure_date = departure_date
 
                     # print()
 
