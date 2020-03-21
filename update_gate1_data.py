@@ -91,6 +91,8 @@ def main():
             code = link.split('.')[-2].split('-')[-1].upper()
             op_code = 'Gate1{}'.format(code)
             # print(op_code)
+            previous_departure_date = ''
+            duplicate_departure_count = 0
 
             data_table = soup.find('table', class_='date-price-table')
             hidden_xs_items = data_table.find_all(class_='hidden-xs')
@@ -122,7 +124,14 @@ def main():
                             day = '{:02}'.format(int(date_numbers[1]))
                             month = str(chr((datetime.strptime(date_numbers[0], '%b')).month + 64))
                         # print(departure_date)
-                        departure_code = '{}{}{}a'.format(day, month, year[-2:])
+
+                        if departure_date == previous_departure_date:                   # check if duplicate departure
+                            duplicate_departure_count += 1
+                        else:
+                            duplicate_departure_count = 0
+
+                        departure_letter = str(chr(duplicate_departure_count + 97))
+                        departure_code = '{}{}{}{}'.format(day, month, year, departure_letter)
                         departure_id = '{}-{}'.format(op_code, departure_code)
                         # print(departure_id)
                         
@@ -154,6 +163,8 @@ def main():
                             string_to_write = [trip_name,departure_id,departure_date,'Original Price USD',actual_price]
                             csv_writer.writerow(string_to_write)
                             # print(string_to_write)
+                        
+                        previous_departure_date = departure_date
 
             split_link = link.split('/')
             linkAU = '{}//{}.au/{}/{}/{}/{}/{}'.format(split_link[0], split_link[2], split_link[3], split_link[4], split_link[5], split_link[6], split_link[7])
@@ -161,6 +172,9 @@ def main():
 
             res = requests.get(linkAU)
             soup = bs4.BeautifulSoup(res.text, 'lxml')
+
+            previous_departure_date = ''
+            duplicate_departure_count = 0
 
             if soup.find('table', class_='date-price-table'):                                            # check is AU site exists
 
@@ -191,7 +205,14 @@ def main():
                                 day = '{:02}'.format(int(date_numbers[1]))
                                 month = str(chr((datetime.strptime(date_numbers[0], '%b')).month + 64))
                             # print(departure_date)
-                            departure_code = '{}{}{}a'.format(day, month, year[-2:])
+                            
+                            if departure_date == previous_departure_date:                   # check if duplicate departure
+                                duplicate_departure_count += 1
+                            else:
+                                duplicate_departure_count = 0
+
+                            departure_letter = str(chr(duplicate_departure_count + 97))
+                            departure_code = '{}{}{}{}'.format(day, month, year, departure_letter)
                             departure_id = '{}-{}'.format(op_code, departure_code)
                             # print(departure_id)
                             
@@ -213,6 +234,8 @@ def main():
                                 string_to_write = [trip_name,departure_id,departure_date,'Original Price AUD',actual_price]
                                 csv_writer.writerow(string_to_write)
                                 # print(string_to_write)
+                            
+                            previous_departure_date = departure_date
 
     new_file.close()
     
