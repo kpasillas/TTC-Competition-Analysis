@@ -52,7 +52,7 @@ def main():
             ('ColletteHA20', 'https://www.gocollette.com/en/tours/north-america/usa/hawaiian-adventure/booking?b=1#step/1', 'https://www.gocollette.com/en-au/tours/north-america/usa/hawaiian-adventure/booking?b=1#step/1'),      # Hawaiian Adventure Three Islands featuring Oahu, Kauai and Maui
             ('ColletteHOA20', 'https://www.gocollette.com/en/tours/north-america/usa/heritage-of-america/booking?b=1#step/1', 'https://www.gocollette.com/en-au/tours/north-america/usa/heritage-of-america/booking?b=1#step/1'),       # Heritage of America
             ('ColletteHOAVT20', 'https://www.gocollette.com/en/tours/north-america/usa/heritage-of-america-international-tattoo/booking?b=1#step/1', 'https://www.gocollette.com/en-au/tours/north-america/usa/heritage-of-america-international-tattoo/booking?b=1#step/1'),        # Heritage of America featuring the Virginia International Tattoo
-            # ('ColletteHSAAL20', '', ''),       # Highlights of South America Featuring the Andean Lakes Crossing, Buenos Aires & Rio de Janeiro
+            ('ColletteHSAAL20', '', ''),       # Highlights of South America Featuring the Andean Lakes Crossing, Buenos Aires & Rio de Janeiro
             ('ColletteHSA20', 'https://www.gocollette.com/en/tours/south-america/argentina/highlights-of-south-america/booking?b=1#step/1', 'https://www.gocollette.com/en-au/tours/south-america/argentina/highlights-of-south-america/booking?b=1#step/1'),       # Highlights of South America featuring Buenos Aires, Iguazu Falls & Rio de Janeiro
             ('ColletteINE20', 'https://www.gocollette.com/en/tours/north-america/usa/islands-of-new-england/booking?b=1#step/1', 'https://www.gocollette.com/en-au/tours/north-america/usa/islands-of-new-england/booking?b=1#step/1'),      # Islands of New England
             ('ColletteJTSA20', 'https://www.gocollette.com/en/tours/south-america/argentina/journey-through-south-america/booking?b=1#step/1', ''),     # Journey Through South America featuring Santiago, Andean Lakes Crossing & Rio de Janeiro
@@ -104,6 +104,8 @@ def main():
             op_code = trip[0]
             linkUS = trip[1]
             linkAU = trip[2]
+            previous_departure_date = ''
+            duplicate_departure_count = 0
             
             driver = webdriver.Chrome()
             driver.get(linkUS)
@@ -128,10 +130,17 @@ def main():
                         date_numbers = soup.find('div', class_='date').text.split()
                         departure_date = '{:02}-{}-{}'.format(int(date_numbers[1].strip(',')), date_numbers[0], date_numbers[2])
                         # print(departure_date)
+                        
+                        if departure_date == previous_departure_date:                   # check if duplicate departure
+                            duplicate_departure_count += 1
+                        else:
+                            duplicate_departure_count = 0
+
+                        departure_letter = str(chr(duplicate_departure_count + 97))
                         day = '{:02}'.format(int(date_numbers[1].strip(',')))
                         month = str(chr((datetime.strptime(date_numbers[0], '%b')).month + 64))
                         year = '{}'.format(date_numbers[2][-2:])
-                        departure_code = '{}{}{}a'.format(day, month, year)
+                        departure_code = '{}{}{}{}'.format(day, month, year, departure_letter)
                         departure_id = '{}-{}'.format(op_code, departure_code)
                         # print(departure_id)
 
@@ -154,10 +163,15 @@ def main():
                         csv_writer.writerow(string_to_write)
                         # print(string_to_write)
 
+                        previous_departure_date = departure_date
+
             finally:
                 driver.quit()
 
             if linkAU:
+                
+                previous_departure_date = ''
+                duplicate_departure_count = 0
                 driver = webdriver.Chrome()
                 driver.get(linkAU)
 
@@ -176,10 +190,17 @@ def main():
                             date_numbers = soup.find('div', class_='date').text.split()
                             departure_date = '{:02}-{}-{}'.format(int(date_numbers[1].strip(',')), date_numbers[0], date_numbers[2])
                             # print(departure_date)
+
+                            if departure_date == previous_departure_date:                   # check if duplicate departure
+                                duplicate_departure_count += 1
+                            else:
+                                duplicate_departure_count = 0
+
+                            departure_letter = str(chr(duplicate_departure_count + 97))
                             day = '{:02}'.format(int(date_numbers[1].strip(',')))
                             month = str(chr((datetime.strptime(date_numbers[0], '%b')).month + 64))
                             year = '{}'.format(date_numbers[2][-2:])
-                            departure_code = '{}{}{}a'.format(day, month, year)
+                            departure_code = '{}{}{}{}'.format(day, month, year, departure_letter)
                             departure_id = '{}-{}'.format(op_code, departure_code)
                             # print(departure_id)
 
@@ -195,6 +216,8 @@ def main():
                             string_to_write = [trip_name,departure_id,departure_date,'Original Price AUD',original_price]
                             csv_writer.writerow(string_to_write)
                             # print(string_to_write)
+
+                            previous_departure_date = departure_date
 
                 finally:
                     driver.quit()
