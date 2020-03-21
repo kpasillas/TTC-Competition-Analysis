@@ -117,16 +117,25 @@ def main():
             code = code.strip("()")
             op_code = 'Globus{}20'.format(code)
             # print('{} - {}'.format(trip_name, code))
+            previous_departure_date = ''
+            duplicate_departure_count = 0
             
             for departure in soup.find_all('div', class_='listing'):
 
                 date_numbers = departure.find('p', class_='date-numbers').text.split()
                 departure_date = '{:02}-{}-20{}'.format(int(date_numbers[0]), date_numbers[1], date_numbers[2])
                 # print(departure_date)
+
+                if departure_date == previous_departure_date:                   # check if duplicate departure
+                    duplicate_departure_count += 1
+                else:
+                    duplicate_departure_count = 0
+
+                departure_letter = str(chr(duplicate_departure_count + 97))
                 day = '{:02}'.format(int(date_numbers[0]))
                 month = str(chr((datetime.strptime(date_numbers[1], '%b')).month + 64))
                 year = date_numbers[2][-2:]
-                departure_code = '{}{}{}a'.format(day, month, year)
+                departure_code = '{}{}{}{}'.format(day, month, year, departure_letter)
                 departure_id = '{}-{}'.format(op_code, departure_code)
                 # print(departure_id)
                 
@@ -164,9 +173,13 @@ def main():
                 csv_writer.writerow(string_to_write)
                 # print(string_to_write)
 
+                previous_departure_date = departure_date
+
             linkAU = "https://www.globus.com.au/booking?tour={}&season=2020".format(code)
             driver = webdriver.Chrome()
             driver.get(linkAU)
+            previous_departure_date = ''
+            duplicate_departure_count = 0
 
             try:
                 WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.CLASS_NAME, 'booking-departures__wrapper')))
@@ -180,10 +193,17 @@ def main():
                     date_numbers = soup.find('span', class_='booking-departures__date').text.split()
                     departure_date = "{:02}-{}-{}".format(int(date_numbers[0]), (date_numbers[1])[0:3], date_numbers[2])
                     # print(departure_date)
+
+                    if departure_date == previous_departure_date:                   # check if duplicate departure
+                        duplicate_departure_count += 1
+                    else:
+                        duplicate_departure_count = 0
+
+                    departure_letter = str(chr(duplicate_departure_count + 97))
                     day = '{:02}'.format(int(date_numbers[0]))
                     month = str(chr((datetime.strptime(date_numbers[1], '%B')).month + 64))
                     year = date_numbers[2][-2:]
-                    departure_code = '{}{}{}a'.format(day, month, year)
+                    departure_code = '{}{}{}{}'.format(day, month, year, departure_letter)
                     departure_id = '{}-{}'.format(op_code, departure_code)
                     # print(departure_id)
 
@@ -199,6 +219,8 @@ def main():
                     string_to_write = [trip_name,departure_id,departure_date,'Original Price AUD',original_price]
                     csv_writer.writerow(string_to_write)
                     # print(string_to_write)
+
+                    previous_departure_date = departure_date
 
             except TimeoutException:
                 driver.quit()
