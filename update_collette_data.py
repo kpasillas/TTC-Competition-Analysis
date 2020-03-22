@@ -144,11 +144,36 @@ def main():
                         departure_id = '{}-{}'.format(op_code, departure_code)
                         # print(departure_id)
 
-                        if soup.find('div', class_='date-alert'):
-                            notes = soup.find('div', class_='date-alert').text.strip()
+                        notes = ''
+                        if soup.find('div', class_='danger'):
+                            status = 'Limited'
+                            notes = soup.find('div', class_='danger').text.strip()
+                            if soup.find('div', class_='date-alert').text.strip() == 'Guaranteed':
+                                notes = 'Guaranteed, {}'.format(notes)
+                        elif soup.find('div', class_='date-alert'):
+                            status = soup.find('div', class_='date-alert').text.strip()
+                            if status == 'Call 800.340.5158 for details':
+                                status = 'Cancelled'
+                            elif status == 'Guaranteed':
+                                notes = status
+                                status = 'Available'
+                        else:
+                            status = 'Available'
+                        string_to_write = [trip_name,departure_id,departure_date,'Status',status]
+                        csv_writer.writerow(string_to_write)
+                        # print(string_to_write)
+                        if notes:
                             string_to_write = [trip_name,departure_id,departure_date,'Notes',notes]
                             csv_writer.writerow(string_to_write)
                             # print(string_to_write)
+
+                        if status == 'Cancelled' or status == 'Sold Out':
+                            available = False
+                        else:
+                            available = True
+                        string_to_write = [trip_name,departure_id,departure_date,'Available',available]
+                        csv_writer.writerow(string_to_write)
+                        # print(string_to_write)
 
                         actual_price = soup.find('span', class_='discountedPrice').text.strip()
                         string_to_write = [trip_name,departure_id,departure_date,'Actual Price USD',actual_price]
