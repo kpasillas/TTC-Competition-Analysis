@@ -247,8 +247,6 @@ def main():
                 finally:
                     driver.quit()
 
-    new_file.close()
-
     print("\nDone!\n")
 
 if __name__ == '__main__': main()
