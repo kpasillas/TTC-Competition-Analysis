@@ -48,7 +48,7 @@ def main():
             ('ColletteCNEP20', 'https://www.gocollette.com/en/tours/north-america/usa/colors-of-new-england-featuring-portland/booking?b=1#step/1', 'https://www.gocollette.com/en-au/tours/north-america/usa/colors-of-new-england-featuring-portland/booking?b=1#step/1'),        # Colors of New England featuring Portland, Maine
             ('ColletteCR20', 'https://www.gocollette.com/en/tours/south-america/costa-rica/costa-rica/booking?b=1#step/1', 'https://www.gocollette.com/en-au/tours/south-america/costa-rica/costa-rica/booking?b=1#step/1'),       # Costa Rica: A World of Nature featuring Tortuguero National Park, Arenal Volcano & Manuel Antonio National Park
             ('ColletteDP20', 'https://www.gocollette.com/en/tours/south-america/panama/discover-panama/booking?b=1#step/1', 'https://www.gocollette.com/en-au/tours/south-america/panama/discover-panama/booking?b=1#step/1'),       # Discover Panama: The Land Between the Seas
-            # ('ColletteEC20', '', ''),       # Experience Colombia
+            ('ColletteEC20', '', ''),       # Experience Colombia
             ('ColletteHA20', 'https://www.gocollette.com/en/tours/north-america/usa/hawaiian-adventure/booking?b=1#step/1', 'https://www.gocollette.com/en-au/tours/north-america/usa/hawaiian-adventure/booking?b=1#step/1'),      # Hawaiian Adventure Three Islands featuring Oahu, Kauai and Maui
             ('ColletteHOA20', 'https://www.gocollette.com/en/tours/north-america/usa/heritage-of-america/booking?b=1#step/1', 'https://www.gocollette.com/en-au/tours/north-america/usa/heritage-of-america/booking?b=1#step/1'),       # Heritage of America
             ('ColletteHOAVT20', 'https://www.gocollette.com/en/tours/north-america/usa/heritage-of-america-international-tattoo/booking?b=1#step/1', 'https://www.gocollette.com/en-au/tours/north-america/usa/heritage-of-america-international-tattoo/booking?b=1#step/1'),        # Heritage of America featuring the Virginia International Tattoo
@@ -175,16 +175,16 @@ def main():
                         csv_writer.writerow(string_to_write)
                         # print(string_to_write)
 
-                        actual_price = soup.find('span', class_='discountedPrice').text.strip()
-                        string_to_write = [trip_name,departure_id,departure_date,'Actual Price USD',actual_price]
+                        actual_price = soup.find('span', class_='discountedPrice').text.strip().replace(',', '')
+                        string_to_write = [trip_name,departure_id,departure_date,'ActualPriceUSD',actual_price]
                         csv_writer.writerow(string_to_write)
                         # print(string_to_write)
 
                         if soup.find('span', class_='crossout'):
-                            original_price = soup.find('span', class_='crossout').text.strip()
+                            original_price = soup.find('span', class_='crossout').text.strip().replace(',', '')
                         else:
                             original_price = actual_price
-                        string_to_write = [trip_name,departure_id,departure_date,'Original Price USD',original_price]
+                        string_to_write = [trip_name,departure_id,departure_date,'OriginalPriceUSD',original_price]
                         csv_writer.writerow(string_to_write)
                         # print(string_to_write)
 
@@ -229,16 +229,16 @@ def main():
                             departure_id = '{}-{}'.format(op_code, departure_code)
                             # print(departure_id)
 
-                            actual_price = soup.find('span', class_='discountedPrice').text.strip()
-                            string_to_write = [trip_name,departure_id,departure_date,'Actual Price AUD',actual_price]
+                            actual_price = soup.find('span', class_='discountedPrice').text.strip().replace(',', '')
+                            string_to_write = [trip_name,departure_id,departure_date,'ActualPriceAUD',actual_price]
                             csv_writer.writerow(string_to_write)
                             # print(string_to_write)
 
                             if soup.find('span', class_='crossout'):
-                                original_price = soup.find('span', class_='crossout').text.strip()
+                                original_price = soup.find('span', class_='crossout').text.strip().replace(',', '')
                             else:
                                 original_price = actual_price
-                            string_to_write = [trip_name,departure_id,departure_date,'Original Price AUD',original_price]
+                            string_to_write = [trip_name,departure_id,departure_date,'OriginalPriceAUD',original_price]
                             csv_writer.writerow(string_to_write)
                             # print(string_to_write)
 
