@@ -15,6 +15,8 @@ def main():
 
     today = date.today()
     file_name = 'collette_data_{}.csv'.format(today.strftime("%m-%d-%y"))
+
+    error_log = dict()
     
     with open(file_name, 'a') as new_file:
         csv_writer = csv.writer(new_file, lineterminator='\n')
@@ -194,13 +196,13 @@ def main():
                             previous_departure_date = departure_date
 
                 except TimeoutException:
-                    print('Missing from US Website: {}'.format(op_code))
+                    error_log['{} - US'.format(op_code)] = 'Missing from Website'
                 
                 finally:
                     driver.quit()
 
             else:
-                print('Missing US Link: {}'.format(op_code))
+                error_log['{} - US'.format(op_code)] = 'Missing Link'
 
             
             if linkAU:
@@ -255,14 +257,18 @@ def main():
                             previous_departure_date = departure_date
 
                 except TimeoutException:
-                    print('Missing from AU Website: {}'.format(op_code))
+                    error_log['{} - AU'.format(op_code)] = 'Missing from Website'
                 
                 finally:
                     driver.quit()
 
             else:
-                print('Missing AU Link: {}'.format(op_code))
+                error_log['{} - AU'.format(op_code)] = 'Missing Link'
 
+    print('\n\nError Log')
+    for code, error in error_log.items():
+        print('{}: {}'.format(code, error))
+    
     print("\nDone!\n")
 
 if __name__ == '__main__': main()
