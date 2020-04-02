@@ -149,29 +149,32 @@ def main():
                             departure_id = '{}-{}'.format(op_code, departure_code)
                             # print(departure_id)
 
-                            notes = ''
-                            if soup.find('div', class_='danger'):
+                            if soup.find('div', class_='danger'):                           # check for 'Only x seats remaining'
                                 status = 'Limited'
                                 notes = soup.find('div', class_='danger').text.strip()
-                                if soup.find('div', class_='date-alert').text.strip() == 'Guaranteed':
-                                    notes = 'Guaranteed, {}'.format(notes)
-                            elif soup.find('div', class_='date-alert'):
+                                string_to_write = [trip_name,departure_id,departure_date,'Notes',notes]
+                                csv_writer.writerow(string_to_write)
+                                # print(string_to_write)
+                            elif soup.find('div', class_='date-alert'):                     # check if Cancelled, Guaranteed, or Sold Out
                                 status = soup.find('div', class_='date-alert').text.strip()
                                 if status == 'Call 800.340.5158 for details':
+                                    notes = status
+                                    string_to_write = [trip_name,departure_id,departure_date,'Notes',notes]
+                                    csv_writer.writerow(string_to_write)
+                                    # print(string_to_write)
                                     status = 'Cancelled'
                                 elif status == 'Guaranteed':
-                                    notes = status
+                                    type_guaranteed = status
+                                    string_to_write = [trip_name,departure_id,departure_date,'Type',type_guaranteed]
+                                    csv_writer.writerow(string_to_write)
+                                    # print(string_to_write)
                                     status = 'Available'
                             else:
                                 status = 'Available'
                             string_to_write = [trip_name,departure_id,departure_date,'Status',status]
                             csv_writer.writerow(string_to_write)
                             # print(string_to_write)
-                            if notes:
-                                string_to_write = [trip_name,departure_id,departure_date,'Notes',notes]
-                                csv_writer.writerow(string_to_write)
-                                # print(string_to_write)
-
+                            
                             if status == 'Cancelled' or status == 'Sold Out':
                                 available = False
                             else:
