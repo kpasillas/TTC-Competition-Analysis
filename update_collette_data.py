@@ -90,7 +90,7 @@ def main():
             ('ColletteSWDC20', 'https://www.gocollette.com/en/tours/north-america/usa/spotlight-on-washington-dc/booking?b=1#step/1', 'https://www.gocollette.com/en-au/tours/north-america/usa/spotlight-on-washington-dc/booking?b=1#step/1'),      # Spotlight on Washington, D.C. Exploring America's Capital
             ('ColletteBEC20', 'https://www.gocollette.com/en/tours/north-america/canada/the-best-of-eastern-canada/booking?b=1#step/1', 'https://www.gocollette.com/en-au/tours/north-america/canada/the-best-of-eastern-canada/booking?b=1#step/1'),       # The Best of Eastern Canada featuring Montreal, Quebec City, Ottawa, Niagara Falls & Toronto
             ('ColletteCRNP20', 'https://www.gocollette.com/en/tours/north-america/usa/the-colorado-rockies/booking?b=1#step/1', 'https://www.gocollette.com/en-au/tours/north-america/usa/the-colorado-rockies/booking?b=1#step/1'),        # The Colorado Rockies featuring National Parks and Historic Trains
-            # ('ColletteCSA20', '', ''),       # The Complete South America Featuring Peru & Machu Picchu
+            ('ColletteCSA20', '', ''),       # The Complete South America Featuring Peru & Machu Picchu
             ('ColletteTCR20', 'https://www.gocollette.com/en/tours/south-america/costa-rica/tropical-costa-rica/booking?b=1#step/1', 'https://www.gocollette.com/en-au/tours/south-america/costa-rica/tropical-costa-rica/booking?b=1#step/1'),      # Tropical Costa Rica
             ('ColletteWDCNFNYC20', 'https://www.gocollette.com/en/tours/north-america/usa/washington-dc-niagara-falls-new-york-city/booking?b=1#step/1', 'https://www.gocollette.com/en-au/tours/north-america/usa/washington-dc-niagara-falls-new-york-city/booking?b=1#step/1'),       # Washington D.C., Niagara Falls & NYC
             ('ColletteWY20', 'https://www.gocollette.com/en/tours/north-america/usa/winter-in-yellowstone/booking?b=1#step/1', 'https://www.gocollette.com/en-au/tours/north-america/usa/winter-in-yellowstone/booking?b=1#step/1'),       # Winter in Yellowstone
@@ -104,95 +104,102 @@ def main():
             op_code = trip[0]
             linkUS = trip[1]
             linkAU = trip[2]
-            previous_departure_date = ''
-            duplicate_departure_count = 0
+
+            if linkUS:
             
-            driver = webdriver.Chrome()
-            driver.get(linkUS)
+                previous_departure_date = ''
+                duplicate_departure_count = 0
+                
+                driver = webdriver.Chrome()
+                driver.get(linkUS)
 
-            nameElement = driver.find_element_by_tag_name('h3')
-            soup = bs4.BeautifulSoup(nameElement.get_attribute('innerHTML'), 'lxml')
-            trip_name = soup.contents[0].text.strip()
-            # print(trip_name)
+                nameElement = driver.find_element_by_tag_name('h3')
+                soup = bs4.BeautifulSoup(nameElement.get_attribute('innerHTML'), 'lxml')
+                trip_name = soup.contents[0].text.strip()
+                # print(trip_name)
 
-            try:
-                WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'date-group-dates')))
+                try:
+                    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'date-group-dates')))
 
-                monthElements = driver.find_elements_by_class_name('date-group-dates')
-                for month in monthElements:
+                    monthElements = driver.find_elements_by_class_name('date-group-dates')
+                    for month in monthElements:
 
-                    departureElements = month.find_elements_by_class_name('date-group')
-                    for departure in departureElements:
+                        departureElements = month.find_elements_by_class_name('date-group')
+                        for departure in departureElements:
 
-                        soup = bs4.BeautifulSoup(departure.get_attribute('innerHTML'), 'lxml')
-                        # file.write(soup.prettify())
+                            soup = bs4.BeautifulSoup(departure.get_attribute('innerHTML'), 'lxml')
+                            # file.write(soup.prettify())
 
-                        date_numbers = soup.find('div', class_='date').text.split()
-                        departure_date = '{:02}-{}-{}'.format(int(date_numbers[1].strip(',')), date_numbers[0], date_numbers[2])
-                        # print(departure_date)
-                        
-                        if departure_date == previous_departure_date:                   # check if duplicate departure
-                            duplicate_departure_count += 1
-                        else:
-                            duplicate_departure_count = 0
+                            date_numbers = soup.find('div', class_='date').text.split()
+                            departure_date = '{:02}-{}-{}'.format(int(date_numbers[1].strip(',')), date_numbers[0], date_numbers[2])
+                            # print(departure_date)
+                            
+                            if departure_date == previous_departure_date:                   # check if duplicate departure
+                                duplicate_departure_count += 1
+                            else:
+                                duplicate_departure_count = 0
 
-                        departure_letter = str(chr(duplicate_departure_count + 97))
-                        day = '{:02}'.format(int(date_numbers[1].strip(',')))
-                        month = str(chr((datetime.strptime(date_numbers[0], '%b')).month + 64))
-                        year = '{}'.format(date_numbers[2][-2:])
-                        departure_code = '{}{}{}{}'.format(day, month, year, departure_letter)
-                        departure_id = '{}-{}'.format(op_code, departure_code)
-                        # print(departure_id)
+                            departure_letter = str(chr(duplicate_departure_count + 97))
+                            day = '{:02}'.format(int(date_numbers[1].strip(',')))
+                            month = str(chr((datetime.strptime(date_numbers[0], '%b')).month + 64))
+                            year = '{}'.format(date_numbers[2][-2:])
+                            departure_code = '{}{}{}{}'.format(day, month, year, departure_letter)
+                            departure_id = '{}-{}'.format(op_code, departure_code)
+                            # print(departure_id)
 
-                        notes = ''
-                        if soup.find('div', class_='danger'):
-                            status = 'Limited'
-                            notes = soup.find('div', class_='danger').text.strip()
-                            if soup.find('div', class_='date-alert').text.strip() == 'Guaranteed':
-                                notes = 'Guaranteed, {}'.format(notes)
-                        elif soup.find('div', class_='date-alert'):
-                            status = soup.find('div', class_='date-alert').text.strip()
-                            if status == 'Call 800.340.5158 for details':
-                                status = 'Cancelled'
-                            elif status == 'Guaranteed':
-                                notes = status
+                            notes = ''
+                            if soup.find('div', class_='danger'):
+                                status = 'Limited'
+                                notes = soup.find('div', class_='danger').text.strip()
+                                if soup.find('div', class_='date-alert').text.strip() == 'Guaranteed':
+                                    notes = 'Guaranteed, {}'.format(notes)
+                            elif soup.find('div', class_='date-alert'):
+                                status = soup.find('div', class_='date-alert').text.strip()
+                                if status == 'Call 800.340.5158 for details':
+                                    status = 'Cancelled'
+                                elif status == 'Guaranteed':
+                                    notes = status
+                                    status = 'Available'
+                            else:
                                 status = 'Available'
-                        else:
-                            status = 'Available'
-                        string_to_write = [trip_name,departure_id,departure_date,'Status',status]
-                        csv_writer.writerow(string_to_write)
-                        # print(string_to_write)
-                        if notes:
-                            string_to_write = [trip_name,departure_id,departure_date,'Notes',notes]
+                            string_to_write = [trip_name,departure_id,departure_date,'Status',status]
+                            csv_writer.writerow(string_to_write)
+                            # print(string_to_write)
+                            if notes:
+                                string_to_write = [trip_name,departure_id,departure_date,'Notes',notes]
+                                csv_writer.writerow(string_to_write)
+                                # print(string_to_write)
+
+                            if status == 'Cancelled' or status == 'Sold Out':
+                                available = False
+                            else:
+                                available = True
+                            string_to_write = [trip_name,departure_id,departure_date,'Available',available]
                             csv_writer.writerow(string_to_write)
                             # print(string_to_write)
 
-                        if status == 'Cancelled' or status == 'Sold Out':
-                            available = False
-                        else:
-                            available = True
-                        string_to_write = [trip_name,departure_id,departure_date,'Available',available]
-                        csv_writer.writerow(string_to_write)
-                        # print(string_to_write)
+                            actual_price = soup.find('span', class_='discountedPrice').text.strip().replace(',', '')
+                            string_to_write = [trip_name,departure_id,departure_date,'ActualPriceUSD',actual_price]
+                            csv_writer.writerow(string_to_write)
+                            # print(string_to_write)
 
-                        actual_price = soup.find('span', class_='discountedPrice').text.strip().replace(',', '')
-                        string_to_write = [trip_name,departure_id,departure_date,'ActualPriceUSD',actual_price]
-                        csv_writer.writerow(string_to_write)
-                        # print(string_to_write)
+                            if soup.find('span', class_='crossout'):
+                                original_price = soup.find('span', class_='crossout').text.strip().replace(',', '')
+                            else:
+                                original_price = actual_price
+                            string_to_write = [trip_name,departure_id,departure_date,'OriginalPriceUSD',original_price]
+                            csv_writer.writerow(string_to_write)
+                            # print(string_to_write)
 
-                        if soup.find('span', class_='crossout'):
-                            original_price = soup.find('span', class_='crossout').text.strip().replace(',', '')
-                        else:
-                            original_price = actual_price
-                        string_to_write = [trip_name,departure_id,departure_date,'OriginalPriceUSD',original_price]
-                        csv_writer.writerow(string_to_write)
-                        # print(string_to_write)
+                            previous_departure_date = departure_date
 
-                        previous_departure_date = departure_date
+                finally:
+                    driver.quit()
 
-            finally:
-                driver.quit()
+            else:
+                print('Missing US Link: {}'.format(op_code))
 
+            
             if linkAU:
                 
                 previous_departure_date = ''
@@ -246,6 +253,9 @@ def main():
 
                 finally:
                     driver.quit()
+
+            else:
+                print('Missing AU Link: {}'.format(op_code))
 
     print("\nDone!\n")
 
