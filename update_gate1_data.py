@@ -147,20 +147,20 @@ def main():
 
                         if departure.find('td', class_='bookby-price'):
                             prices = departure.find_all('td', class_='text-center')
-                            actual_price = prices[0].text.strip()
-                            string_to_write = [trip_name,departure_id,departure_date,'Actual Price USD',actual_price]
+                            actual_price = prices[0].text.strip().replace(',', '')
+                            string_to_write = [trip_name,departure_id,departure_date,'ActualPriceUSD',actual_price]
                             csv_writer.writerow(string_to_write)
                             # print(string_to_write)
-                            original_price = prices[1].text.strip()
-                            string_to_write = [trip_name,departure_id,departure_date,'Original Price USD',original_price]
+                            original_price = prices[1].text.strip().replace(',', '')
+                            string_to_write = [trip_name,departure_id,departure_date,'OriginalPriceUSD',original_price]
                             csv_writer.writerow(string_to_write)
                             # print(string_to_write)
                         else:
-                            actual_price = departure.find('td', class_='text-center').text.strip()
-                            string_to_write = [trip_name,departure_id,departure_date,'Actual Price USD',actual_price]
+                            actual_price = departure.find('td', class_='text-center').text.strip().replace(',', '')
+                            string_to_write = [trip_name,departure_id,departure_date,'ActualPriceUSD',actual_price]
                             csv_writer.writerow(string_to_write)
                             # print(string_to_write)
-                            string_to_write = [trip_name,departure_id,departure_date,'Original Price USD',actual_price]
+                            string_to_write = [trip_name,departure_id,departure_date,'OriginalPriceUSD',actual_price]
                             csv_writer.writerow(string_to_write)
                             # print(string_to_write)
                         
@@ -218,20 +218,20 @@ def main():
                             
                             if departure.find('td', class_='bookby-price'):
                                 prices = departure.find_all('td', class_='text-center')
-                                actual_price = prices[0].text.strip()
-                                string_to_write = [trip_name,departure_id,departure_date,'Actual Price AUD',actual_price]
+                                actual_price = prices[0].text.strip().replace(',', '')
+                                string_to_write = [trip_name,departure_id,departure_date,'ActualPriceAUD',actual_price]
                                 csv_writer.writerow(string_to_write)
                                 # print(string_to_write)
-                                original_price = prices[1].text.strip()
-                                string_to_write = [trip_name,departure_id,departure_date,'Original Price AUD',original_price]
+                                original_price = prices[1].text.strip().replace(',', '')
+                                string_to_write = [trip_name,departure_id,departure_date,'OriginalPriceAUD',original_price]
                                 csv_writer.writerow(string_to_write)
                                 # print(string_to_write)
                             else:
-                                actual_price = departure.find('td', class_='text-center').text.strip()
-                                string_to_write = [trip_name,departure_id,departure_date,'Actual Price AUD',actual_price]
+                                actual_price = departure.find('td', class_='text-center').text.strip().replace(',', '')
+                                string_to_write = [trip_name,departure_id,departure_date,'ActualPriceAUD',actual_price]
                                 csv_writer.writerow(string_to_write)
                                 # print(string_to_write)
-                                string_to_write = [trip_name,departure_id,departure_date,'Original Price AUD',actual_price]
+                                string_to_write = [trip_name,departure_id,departure_date,'OriginalPriceAUD',actual_price]
                                 csv_writer.writerow(string_to_write)
                                 # print(string_to_write)
                             
