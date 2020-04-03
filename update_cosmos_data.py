@@ -125,23 +125,28 @@ def main():
                     # print(string_to_write)
                     
                     if departure.find('div', class_='popular-message'):
-                        popular_departure = True
-                    else:
-                        popular_departure = False
-                    string_to_write = [trip_name,departure_id,departure_date,'Popular Departure',popular_departure]
-                    csv_writer.writerow(string_to_write)
-                    # print(string_to_write)
+                        type_popular = 'Popular'
+                        string_to_write = [trip_name,departure_id,departure_date,'Type',type_popular]
+                        csv_writer.writerow(string_to_write)
+                        # print(string_to_write)
                     
-                    listing_status = departure.find('div', class_='listing-status').text.strip()
-                    string_to_write = [trip_name,departure_id,departure_date,'Listing Status',listing_status]
-                    csv_writer.writerow(string_to_write)
-                    # print(string_to_write)
+                    if departure.find('div', class_='listing-status'):
+                        notes = departure.find('div', class_='listing-status').text.strip()
+                        if notes:
+                            string_to_write = [trip_name,departure_id,departure_date,'Notes',notes]
+                            csv_writer.writerow(string_to_write)
+                            # print(string_to_write)
                     
-                    if re.search( "Not Available", departure.find('div', class_='listing-buttons-contain').text):
+                    if re.search( "Not Available", departure.find('div', class_='listing-buttons-contain').text) or notes == '0 Seats Remaining':
                         available = False
+                        status = 'Not Available'
                     else:
                         available = True
+                        status = 'Available'
                     string_to_write = [trip_name,departure_id,departure_date,'Available',available]
+                    csv_writer.writerow(string_to_write)
+                    # print(string_to_write)
+                    string_to_write = [trip_name,departure_id,departure_date,'Status',status]
                     csv_writer.writerow(string_to_write)
                     # print(string_to_write)
 
