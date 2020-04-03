@@ -236,8 +236,6 @@ def main():
                                 # print(string_to_write)
                             
                             previous_departure_date = departure_date
-
-    new_file.close()
     
     print("\nDone!\n")
 
