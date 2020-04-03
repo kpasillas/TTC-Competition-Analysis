@@ -113,68 +113,72 @@ def main():
             res = requests.get(link)
             soup = bs4.BeautifulSoup(res.text, 'lxml')
 
-            trip_name = soup.find("h1").contents[0].text
-            code = soup.find("h1").contents[2].text
-            code = code.strip("()")
-            op_code = 'Globus{}20'.format(code)
-            # print('{} - {}'.format(trip_name, code))
-            previous_departure_date = ''
-            duplicate_departure_count = 0
-            
-            for departure in soup.find_all('div', class_='listing'):
+            try:
+                trip_name = soup.find("h1").contents[0].text
+                code = soup.find("h1").contents[2].text
+                code = code.strip("()")
+                op_code = 'Globus{}20'.format(code)
+                # print('{} - {}'.format(trip_name, code))
+                previous_departure_date = ''
+                duplicate_departure_count = 0
+                
+                for departure in soup.find_all('div', class_='listing'):
 
-                date_numbers = departure.find('p', class_='date-numbers').text.split()
-                departure_date = '{:02}-{}-20{}'.format(int(date_numbers[0]), date_numbers[1], date_numbers[2])
-                # print(departure_date)
+                    date_numbers = departure.find('p', class_='date-numbers').text.split()
+                    departure_date = '{:02}-{}-20{}'.format(int(date_numbers[0]), date_numbers[1], date_numbers[2])
+                    # print(departure_date)
 
-                if departure_date == previous_departure_date:                   # check if duplicate departure
-                    duplicate_departure_count += 1
-                else:
-                    duplicate_departure_count = 0
+                    if departure_date == previous_departure_date:                   # check if duplicate departure
+                        duplicate_departure_count += 1
+                    else:
+                        duplicate_departure_count = 0
 
-                departure_letter = str(chr(duplicate_departure_count + 97))
-                day = '{:02}'.format(int(date_numbers[0]))
-                month = str(chr((datetime.strptime(date_numbers[1], '%b')).month + 64))
-                year = date_numbers[2][-2:]
-                departure_code = '{}{}{}{}'.format(day, month, year, departure_letter)
-                departure_id = '{}-{}'.format(op_code, departure_code)
-                # print(departure_id)
-                
-                actual_price = departure.find('p', class_='price-actual').text.strip().replace(',', '')
-                string_to_write = [trip_name, departure_id,departure_date,'ActualPriceUSD',actual_price]
-                csv_writer.writerow(string_to_write)
-                # print(string_to_write)
-                
-                if departure.find('p', class_='price-strike'):
-                    original_price = departure.find('p', class_='price-strike').text.strip().replace(',', '')
-                else:
-                    original_price = actual_price
-                string_to_write = [trip_name,departure_id,departure_date,'OriginalPriceUSD',original_price]
-                csv_writer.writerow(string_to_write)
-                # print(string_to_write)
-                
-                if departure.find('div', class_='popular-message'):
-                    popular_departure = True
-                else:
-                    popular_departure = False
-                string_to_write = [trip_name,departure_id,departure_date,'Popular Departure',popular_departure]
-                csv_writer.writerow(string_to_write)
-                # print(string_to_write)
-                
-                listing_status = departure.find('div', class_='listing-status').text.strip()
-                string_to_write = [trip_name,departure_id,departure_date,'Listing Status',listing_status]
-                csv_writer.writerow(string_to_write)
-                # print(string_to_write)
-                
-                if re.search( "Not Available", departure.find('div', class_='listing-buttons-contain').text):
-                    available = False
-                else:
-                    available = True
-                string_to_write = [trip_name,departure_id,departure_date,'Available',available]
-                csv_writer.writerow(string_to_write)
-                # print(string_to_write)
+                    departure_letter = str(chr(duplicate_departure_count + 97))
+                    day = '{:02}'.format(int(date_numbers[0]))
+                    month = str(chr((datetime.strptime(date_numbers[1], '%b')).month + 64))
+                    year = date_numbers[2][-2:]
+                    departure_code = '{}{}{}{}'.format(day, month, year, departure_letter)
+                    departure_id = '{}-{}'.format(op_code, departure_code)
+                    # print(departure_id)
+                    
+                    actual_price = departure.find('p', class_='price-actual').text.strip().replace(',', '')
+                    string_to_write = [trip_name, departure_id,departure_date,'ActualPriceUSD',actual_price]
+                    csv_writer.writerow(string_to_write)
+                    # print(string_to_write)
+                    
+                    if departure.find('p', class_='price-strike'):
+                        original_price = departure.find('p', class_='price-strike').text.strip().replace(',', '')
+                    else:
+                        original_price = actual_price
+                    string_to_write = [trip_name,departure_id,departure_date,'OriginalPriceUSD',original_price]
+                    csv_writer.writerow(string_to_write)
+                    # print(string_to_write)
+                    
+                    if departure.find('div', class_='popular-message'):
+                        popular_departure = True
+                    else:
+                        popular_departure = False
+                    string_to_write = [trip_name,departure_id,departure_date,'Popular Departure',popular_departure]
+                    csv_writer.writerow(string_to_write)
+                    # print(string_to_write)
+                    
+                    listing_status = departure.find('div', class_='listing-status').text.strip()
+                    string_to_write = [trip_name,departure_id,departure_date,'Listing Status',listing_status]
+                    csv_writer.writerow(string_to_write)
+                    # print(string_to_write)
+                    
+                    if re.search( "Not Available", departure.find('div', class_='listing-buttons-contain').text):
+                        available = False
+                    else:
+                        available = True
+                    string_to_write = [trip_name,departure_id,departure_date,'Available',available]
+                    csv_writer.writerow(string_to_write)
+                    # print(string_to_write)
 
-                previous_departure_date = departure_date
+                    previous_departure_date = departure_date
+
+            except:
+                error_log['{} - US'.format(link)] = 'Missing from Website'
 
             linkAU = "https://www.globus.com.au/booking?tour={}&season=2020".format(code)
             driver = webdriver.Chrome()
