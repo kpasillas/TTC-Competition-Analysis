@@ -4,7 +4,6 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.action_chains import ActionChains
 import requests
 import bs4
 import re
@@ -22,7 +21,7 @@ def main():
     with open(file_name, 'a') as new_file:
         csv_writer = csv.writer(new_file, lineterminator='\n')
 
-        field_names = ['Trip Name', 'DepartureID','Departure Date','field','value']
+        field_names = ['Trip Name','DepartureID','Departure Date','field','value']
         csv_writer.writerow(field_names)
 
         year = '2020'                     # OK to hard-code year value since separate links/report are needed for 2021
@@ -130,8 +129,8 @@ def main():
                     csv_writer.writerow(string_to_write)
                     # print(string_to_write)
 
-                    actual_price = departureData[4].get_attribute('innerHTML').strip()
-                    string_to_write = [trip_name, departure_id,departure_date,'Actual Price USD',actual_price]
+                    actual_price = departureData[4].get_attribute('innerHTML').strip().replace(',', '')
+                    string_to_write = [trip_name, departure_id,departure_date,'ActualPriceUSD',actual_price]
                     csv_writer.writerow(string_to_write)
                     # print(string_to_write)
 
