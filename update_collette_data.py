@@ -21,7 +21,7 @@ def main():
     with open(file_name, 'a') as new_file:
         csv_writer = csv.writer(new_file, lineterminator='\n')
 
-        field_names = ['Trip Name','DepartureID','Departure Date','field','value']
+        field_names = ['Trip Name','DepartureID','field','value']
         csv_writer.writerow(field_names)
         # print(field_names)
     
@@ -134,7 +134,6 @@ def main():
 
                             date_numbers = soup.find('div', class_='date').text.split()
                             departure_date = '{:02}-{}-{}'.format(int(date_numbers[1].strip(',')), date_numbers[0], date_numbers[2])
-                            # print(departure_date)
                             
                             if departure_date == previous_departure_date:                   # check if duplicate departure
                                 duplicate_departure_count += 1
@@ -149,29 +148,33 @@ def main():
                             departure_id = '{}-{}'.format(op_code, departure_code)
                             # print(departure_id)
 
+                            string_to_write = [trip_name,departure_id,'DepartureDate',departure_date]
+                            csv_writer.writerow(string_to_write)
+                            # print(string_to_write)
+
                             if soup.find('div', class_='danger'):                           # check for 'Only x seats remaining'
                                 status = 'Limited'
                                 notes = soup.find('div', class_='danger').text.strip()
-                                string_to_write = [trip_name,departure_id,departure_date,'Notes',notes]
+                                string_to_write = [trip_name,departure_id,'Notes',notes]
                                 csv_writer.writerow(string_to_write)
                                 # print(string_to_write)
                             elif soup.find('div', class_='date-alert'):                     # check if Cancelled, Guaranteed, or Sold Out
                                 status = soup.find('div', class_='date-alert').text.strip()
                                 if status == 'Call 800.340.5158 for details':
                                     notes = status
-                                    string_to_write = [trip_name,departure_id,departure_date,'Notes',notes]
+                                    string_to_write = [trip_name,departure_id,'Notes',notes]
                                     csv_writer.writerow(string_to_write)
                                     # print(string_to_write)
                                     status = 'Cancelled'
                                 elif status == 'Guaranteed':
                                     type_guaranteed = status
-                                    string_to_write = [trip_name,departure_id,departure_date,'Type',type_guaranteed]
+                                    string_to_write = [trip_name,departure_id,'Type',type_guaranteed]
                                     csv_writer.writerow(string_to_write)
                                     # print(string_to_write)
                                     status = 'Available'
                             else:
                                 status = 'Available'
-                            string_to_write = [trip_name,departure_id,departure_date,'Status',status]
+                            string_to_write = [trip_name,departure_id,'Status',status]
                             csv_writer.writerow(string_to_write)
                             # print(string_to_write)
                             
@@ -179,12 +182,12 @@ def main():
                                 available = False
                             else:
                                 available = True
-                            string_to_write = [trip_name,departure_id,departure_date,'Available',available]
+                            string_to_write = [trip_name,departure_id,'Available',available]
                             csv_writer.writerow(string_to_write)
                             # print(string_to_write)
 
                             actual_price = soup.find('span', class_='discountedPrice').text.strip().replace(',', '')
-                            string_to_write = [trip_name,departure_id,departure_date,'ActualPriceUSD',actual_price]
+                            string_to_write = [trip_name,departure_id,'ActualPriceUSD',actual_price]
                             csv_writer.writerow(string_to_write)
                             # print(string_to_write)
 
@@ -192,7 +195,7 @@ def main():
                                 original_price = soup.find('span', class_='crossout').text.strip().replace(',', '')
                             else:
                                 original_price = actual_price
-                            string_to_write = [trip_name,departure_id,departure_date,'OriginalPriceUSD',original_price]
+                            string_to_write = [trip_name,departure_id,'OriginalPriceUSD',original_price]
                             csv_writer.writerow(string_to_write)
                             # print(string_to_write)
 
@@ -245,7 +248,7 @@ def main():
                             # print(departure_id)
 
                             actual_price = soup.find('span', class_='discountedPrice').text.strip().replace(',', '')
-                            string_to_write = [trip_name,departure_id,departure_date,'ActualPriceAUD',actual_price]
+                            string_to_write = [trip_name,departure_id,'ActualPriceAUD',actual_price]
                             csv_writer.writerow(string_to_write)
                             # print(string_to_write)
 
@@ -253,7 +256,7 @@ def main():
                                 original_price = soup.find('span', class_='crossout').text.strip().replace(',', '')
                             else:
                                 original_price = actual_price
-                            string_to_write = [trip_name,departure_id,departure_date,'OriginalPriceAUD',original_price]
+                            string_to_write = [trip_name,departure_id,'OriginalPriceAUD',original_price]
                             csv_writer.writerow(string_to_write)
                             # print(string_to_write)
 
