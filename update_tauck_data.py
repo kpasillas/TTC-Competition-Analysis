@@ -164,12 +164,8 @@ def main():
 
                     # print()
 
-
             finally:
                 driver.quit()
-        
-        
-    new_file.close()
 
     print("\nDone!\n")
 
