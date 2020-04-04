@@ -125,17 +125,38 @@ def main():
                     # print(departure_id)
 
                     departure_type = departureData[2].get_attribute('innerHTML')
-                    string_to_write = [trip_name, departure_id,departure_date,'Departure Type',departure_type]
+                    string_to_write = [trip_name,departure_id,departure_date,'Type',departure_type]
                     csv_writer.writerow(string_to_write)
                     # print(string_to_write)
 
                     actual_price = departureData[4].get_attribute('innerHTML').strip().replace(',', '')
-                    string_to_write = [trip_name, departure_id,departure_date,'ActualPriceUSD',actual_price]
+                    string_to_write = [trip_name,departure_id,departure_date,'ActualPriceUSD',actual_price]
                     csv_writer.writerow(string_to_write)
                     # print(string_to_write)
 
-                    available_status = departureData[5].get_attribute('innerHTML')
-                    string_to_write = [trip_name, departure_id,departure_date,'Available Status',available_status]
+                    notes = departureData[5].get_attribute('innerHTML')
+                    string_to_write = [trip_name,departure_id,departure_date,'Notes',notes]
+                    csv_writer.writerow(string_to_write)
+                    # print(string_to_write)
+
+                    if notes == 'Soldout':
+                        status = 'Sold Out'
+                        available = False
+                    elif notes == 'Not Available':
+                        status = 'Cancelled'
+                        available = False
+                    elif notes == 'Limited':
+                        status = 'Limited'
+                        available = True
+                    elif notes == 'Available':
+                        status = 'Available'
+                        available = True
+                    else:
+                        status = 'UNRECOGNIZED STATUS'
+                    string_to_write = [trip_name,departure_id,departure_date,'Status',status]
+                    csv_writer.writerow(string_to_write)
+                    # print(string_to_write)
+                    string_to_write = [trip_name,departure_id,departure_date,'Available',available]
                     csv_writer.writerow(string_to_write)
                     # print(string_to_write)
 
