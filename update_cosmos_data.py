@@ -23,7 +23,7 @@ def main():
     with open(file_name, 'a') as new_file:
         csv_writer = csv.writer(new_file, lineterminator='\n')
 
-        field_names = ['Trip Name','DepartureID','Departure Date','field','value']
+        field_names = ['Trip Name','DepartureID','field','value']
         csv_writer.writerow(field_names)
 
         linksUS = (
@@ -110,9 +110,13 @@ def main():
                     departure_code = '{}{}{}{}'.format(day, month, year, departure_letter)
                     departure_id = '{}-{}'.format(op_code, departure_code)
                     # print(departure_id)
+
+                    string_to_write = [trip_name,departure_id,'DepartureDate',departure_date]
+                    csv_writer.writerow(string_to_write)
+                    # print(string_to_write)
                     
                     actual_price = departure.find('p', class_='price-actual').text.strip().replace(',', '')
-                    string_to_write = [trip_name, departure_id,departure_date,'ActualPriceUSD',actual_price]
+                    string_to_write = [trip_name,departure_id,'ActualPriceUSD',actual_price]
                     csv_writer.writerow(string_to_write)
                     # print(string_to_write)
                     
@@ -120,20 +124,20 @@ def main():
                         original_price = departure.find('p', class_='price-strike').text.strip().replace(',', '')
                     else:
                         original_price = actual_price
-                    string_to_write = [trip_name,departure_id,departure_date,'OriginalPriceUSD',original_price]
+                    string_to_write = [trip_name,departure_id,'OriginalPriceUSD',original_price]
                     csv_writer.writerow(string_to_write)
                     # print(string_to_write)
                     
                     if departure.find('div', class_='popular-message'):
                         type_popular = 'Popular'
-                        string_to_write = [trip_name,departure_id,departure_date,'Type',type_popular]
+                        string_to_write = [trip_name,departure_id,'Type',type_popular]
                         csv_writer.writerow(string_to_write)
                         # print(string_to_write)
                     
                     if departure.find('div', class_='listing-status'):
                         notes = departure.find('div', class_='listing-status').text.strip()
                         if notes:
-                            string_to_write = [trip_name,departure_id,departure_date,'Notes',notes]
+                            string_to_write = [trip_name,departure_id,'Notes',notes]
                             csv_writer.writerow(string_to_write)
                             # print(string_to_write)
                     
@@ -143,10 +147,10 @@ def main():
                     else:
                         available = True
                         status = 'Available'
-                    string_to_write = [trip_name,departure_id,departure_date,'Available',available]
+                    string_to_write = [trip_name,departure_id,'Available',available]
                     csv_writer.writerow(string_to_write)
                     # print(string_to_write)
-                    string_to_write = [trip_name,departure_id,departure_date,'Status',status]
+                    string_to_write = [trip_name,departure_id,'Status',status]
                     csv_writer.writerow(string_to_write)
                     # print(string_to_write)
 
@@ -187,7 +191,7 @@ def main():
                     # print(departure_id)
 
                     actual_price = soup.find('span', class_='booking-departures__price--amount').text.strip().replace(',', '')
-                    string_to_write = [trip_name, departure_id,departure_date,'ActualPriceAUD',actual_price]
+                    string_to_write = [trip_name,departure_id,'ActualPriceAUD',actual_price]
                     csv_writer.writerow(string_to_write)
                     # print(string_to_write)
                 
@@ -195,7 +199,7 @@ def main():
                         original_price = soup.find('span', class_='booking-departures__price--strike-through').text.strip().replace(',', '')
                     else:
                         original_price = actual_price
-                    string_to_write = [trip_name, departure_id,departure_date,'OriginalPriceAUD',original_price]
+                    string_to_write = [trip_name,departure_id,'OriginalPriceAUD',original_price]
                     csv_writer.writerow(string_to_write)
                     # print(string_to_write)
 
