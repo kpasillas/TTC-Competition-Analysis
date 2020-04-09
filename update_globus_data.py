@@ -26,6 +26,7 @@ def main():
         field_names = ['Trip Name','DepartureID','field','value']
         csv_writer.writerow(field_names)
 
+
         linksUS = (
             'https://www.globusjourneys.com/tour/alaskas-iditarod-with-fairbanks/aiq/?nextyear=true&content=price',     # Alaska's Iditarod With Fairbanks
             'https://www.globusjourneys.com/tour/alaskas-iditarod/ai/?nextyear=true&content=price',     # Alaska's Iditarod
@@ -106,6 +107,7 @@ def main():
             'https://www.globusjourneys.com/tour/yellowstone-winter-wonderland/aw/?nextyear=true&content=price'     # Yellowstone Winter Wonderland
         )
 
+
         print()
 
         for link in tqdm(linksUS):
@@ -166,10 +168,11 @@ def main():
                     
                     if departure.find('div', class_='listing-status'):
                         notes = departure.find('div', class_='listing-status').text.strip()
-                        if notes:
-                            string_to_write = [trip_name,departure_id,'Notes',notes]
-                            csv_writer.writerow(string_to_write)
-                            # print(string_to_write)
+                    else:
+                        notes = ''
+                    string_to_write = [trip_name,departure_id,'Notes',notes]
+                    csv_writer.writerow(string_to_write)
+                    # print(string_to_write)
                     
                     if re.search( "Not Available", departure.find('div', class_='listing-buttons-contain').text) or notes == '0 Seats Remaining':
                         available = False
@@ -240,14 +243,16 @@ def main():
                 finally:
                     driver.quit()
             
+
             except:
                 error_log['{} - US'.format(link)] = 'Missing from Website'
     
         
-        print('\n\n*** Error Log ***')
-        for code, error in error_log.items():
-            print('{}: {}'.format(code, error))
-        
-        print("\nDone!\n")
+    print('\n\n*** Error Log ***')
+    for code, error in error_log.items():
+        print('{}: {}'.format(code, error))
+    
+
+    print("\nDone!\n")
 
 if __name__ == '__main__': main()
