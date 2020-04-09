@@ -155,61 +155,63 @@ def main():
                     # print(string_to_write)
 
                     previous_departure_date = departure_date
+                
 
+                linkAU = "https://www.cosmostours.com.au/booking?tour={}&season=2020".format(code)
+                driver = webdriver.Chrome()
+                driver.get(linkAU)
+                previous_departure_date = ''
+                duplicate_departure_count = 0
+                
+                try:
+                    WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.CLASS_NAME, 'booking-departures__wrapper')))
+
+                    departureElements = driver.find_elements_by_class_name('booking-departures__wrapper')
+                    for departure in departureElements:
+
+                        soup = bs4.BeautifulSoup(departure.get_attribute('innerHTML'), 'lxml')
+
+                        date_numbers = soup.find('span', class_='booking-departures__date').text.split()
+                        departure_date = "{:02}-{}-{}".format(int(date_numbers[0]), (date_numbers[1])[0:3], date_numbers[2])
+                        # print(departure_date)
+
+                        if departure_date == previous_departure_date:                   # check if duplicate departure
+                            duplicate_departure_count += 1
+                        else:
+                            duplicate_departure_count = 0
+
+                        departure_letter = str(chr(duplicate_departure_count + 97))
+                        day = '{:02}'.format(int(date_numbers[0]))
+                        month = str(chr((datetime.strptime(date_numbers[1], '%B')).month + 64))
+                        year = date_numbers[2][-2:]
+                        departure_code = '{}{}{}{}'.format(day, month, year, departure_letter)
+                        departure_id = '{}-{}'.format(op_code, departure_code)
+                        # print(departure_id)
+
+                        actual_price = soup.find('span', class_='booking-departures__price--amount').text.strip().replace(',', '')
+                        string_to_write = [trip_name,departure_id,'ActualPriceAUD',actual_price]
+                        csv_writer.writerow(string_to_write)
+                        # print(string_to_write)
+                    
+                        if soup.find('span', class_='booking-departures__price--strike-through'):
+                            original_price = soup.find('span', class_='booking-departures__price--strike-through').text.strip().replace(',', '')
+                        else:
+                            original_price = actual_price
+                        string_to_write = [trip_name,departure_id,'OriginalPriceAUD',original_price]
+                        csv_writer.writerow(string_to_write)
+                        # print(string_to_write)
+
+                        previous_departure_date = departure_date
+
+                except TimeoutException:
+                    error_log['{} - AU'.format(op_code)] = 'Missing from Website'
+                
+                finally:
+                    driver.quit()
+            
             except:
                 error_log['{} - US'.format(link)] = 'Missing from Website'
-
-            linkAU = "https://www.cosmostours.com.au/booking?tour={}&season=2020".format(code)
-            driver = webdriver.Chrome()
-            driver.get(linkAU)
-            previous_departure_date = ''
-            duplicate_departure_count = 0
             
-            try:
-                WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.CLASS_NAME, 'booking-departures__wrapper')))
-
-                departureElements = driver.find_elements_by_class_name('booking-departures__wrapper')
-                for departure in departureElements:
-
-                    soup = bs4.BeautifulSoup(departure.get_attribute('innerHTML'), 'lxml')
-
-                    date_numbers = soup.find('span', class_='booking-departures__date').text.split()
-                    departure_date = "{:02}-{}-{}".format(int(date_numbers[0]), (date_numbers[1])[0:3], date_numbers[2])
-                    # print(departure_date)
-
-                    if departure_date == previous_departure_date:                   # check if duplicate departure
-                        duplicate_departure_count += 1
-                    else:
-                        duplicate_departure_count = 0
-
-                    departure_letter = str(chr(duplicate_departure_count + 97))
-                    day = '{:02}'.format(int(date_numbers[0]))
-                    month = str(chr((datetime.strptime(date_numbers[1], '%B')).month + 64))
-                    year = date_numbers[2][-2:]
-                    departure_code = '{}{}{}{}'.format(day, month, year, departure_letter)
-                    departure_id = '{}-{}'.format(op_code, departure_code)
-                    # print(departure_id)
-
-                    actual_price = soup.find('span', class_='booking-departures__price--amount').text.strip().replace(',', '')
-                    string_to_write = [trip_name,departure_id,'ActualPriceAUD',actual_price]
-                    csv_writer.writerow(string_to_write)
-                    # print(string_to_write)
-                
-                    if soup.find('span', class_='booking-departures__price--strike-through'):
-                        original_price = soup.find('span', class_='booking-departures__price--strike-through').text.strip().replace(',', '')
-                    else:
-                        original_price = actual_price
-                    string_to_write = [trip_name,departure_id,'OriginalPriceAUD',original_price]
-                    csv_writer.writerow(string_to_write)
-                    # print(string_to_write)
-
-                    previous_departure_date = departure_date
-
-            except TimeoutException:
-                error_log['{} - AU'.format(op_code)] = 'Missing from Website'
-            
-            finally:
-                driver.quit()
 
         print('\n\n*** Error Log ***')
         for code, error in error_log.items():
