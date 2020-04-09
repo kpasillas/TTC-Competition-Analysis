@@ -7,15 +7,16 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 import bs4
 import csv
-from datetime import date
 from datetime import datetime
 from tqdm import tqdm
+import pandas as pd
 
 def main():
 
-    today = date.today()
-    file_name = 'collette_data_{}.csv'.format(today.strftime("%m-%d-%y"))
+    today = datetime.now()
+    file_name = 'collette_raw_data_{}.csv'.format(today.strftime("%m-%d-%y"))
 
+    report_ID = str(input('\nEnter ReportID >> '))
     error_log = dict()
     
     with open(file_name, 'a') as new_file:
@@ -271,9 +272,43 @@ def main():
             else:
                 error_log['{} - AU'.format(op_code)] = 'Missing Link'
 
-    print('\n\nError Log')
+    print('\n\n*** Error Log ***')
     for code, error in error_log.items():
         print('{}: {}'.format(code, error))
+    
+    curr_df = pd.read_csv(file_name).pivot(index='DepartureID', columns='field', values='value').reset_index()
+    curr_df = curr_df[['DepartureID', 'DepartureDate', 'ActualPriceUSD', 'OriginalPriceUSD', 'ActualPriceAUD', 'OriginalPriceAUD', 'Available', 'Type', 'Status', 'Notes']]
+    curr_df['DepartureDate'] = pd.to_datetime(curr_df['DepartureDate'], format='%d-%b-%Y')
+    curr_df.insert(0, 'ReportID', report_ID)
+    curr_df.insert(10, 'Pax', '')
+    curr_df = curr_df.loc[curr_df['DepartureDate'] < datetime(year=2021, month=1, day=1, hour=0, minute=0)]
+
+    prev_df = pd.read_csv('COLLETTE_PREV_REPORT.csv')
+    departure_code = prev_df['DepartureID'].str.split(pat='-', expand=True)[1]
+    day_numbers = departure_code.str[0:2]
+    get_char = lambda x : str(ord(x[2]) - 64)
+    month_numbers = departure_code.apply(get_char)
+    year_numbers = departure_code.str[3:5]
+    departure_date = pd.to_datetime(day_numbers + '-' + month_numbers + '-' + year_numbers + '-23:59', format='%d-%m-%y-%H:%M')
+    prev_df.insert(2, 'DepartureDate', departure_date)
+
+    new_df = curr_df.loc[~curr_df['DepartureID'].isin(list(prev_df['DepartureID']))]
+
+    prev_past_df = prev_df.loc[prev_df['DepartureDate'] < today].copy()
+    curr_df = pd.concat([curr_df, prev_past_df]).sort_values(by=['DepartureDate'], ascending=True)
+
+    prev_future_df = prev_df.loc[prev_df['DepartureDate'] >= today].copy()
+    filt = (prev_future_df['Available'] == True)
+    prev_future_df.loc[filt, ['Available', 'Status', 'Notes']] = [False, 'Cancelled / Sold Out', 'Removed from website']
+    
+    curr_df = pd.concat([curr_df, prev_future_df]).sort_values(by=['ReportID', 'DepartureID'], ascending=True).drop_duplicates(subset='DepartureID', keep='last').sort_values(by='DepartureDate', ascending=True)
+    curr_df.drop(columns='DepartureDate', inplace=True)
+    curr_df['ReportID'] = report_ID
+    curr_df.set_index(['ReportID', 'DepartureID'], verify_integrity=True, inplace=True)
+    file_name = 'collette_data_{}.csv'.format(today.strftime("%m-%d-%y"))
+    curr_df.to_csv(file_name)
+
+    new_df.to_csv('collette_new_departures.csv', index=False)
     
     print("\nDone!\n")
 
