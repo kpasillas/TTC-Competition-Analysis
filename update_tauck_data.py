@@ -21,7 +21,7 @@ def main():
     with open(file_name, 'a') as new_file:
         csv_writer = csv.writer(new_file, lineterminator='\n')
 
-        field_names = ['Trip Name','DepartureID','Departure Date','field','value']
+        field_names = ['Trip Name','DepartureID','field','value']
         csv_writer.writerow(field_names)
 
         year = '2020'                     # OK to hard-code year value since separate links/report are needed for 2021
@@ -124,18 +124,22 @@ def main():
                     departure_id = '{}-{}'.format(op_code, departure_code)
                     # print(departure_id)
 
+                    string_to_write = [trip_name,departure_id,'DepartureDate',departure_date]
+                    csv_writer.writerow(string_to_write)
+                    # print(string_to_write)
+
                     departure_type = departureData[2].get_attribute('innerHTML')
-                    string_to_write = [trip_name,departure_id,departure_date,'Type',departure_type]
+                    string_to_write = [trip_name,departure_id,'Type',departure_type]
                     csv_writer.writerow(string_to_write)
                     # print(string_to_write)
 
                     actual_price = departureData[4].get_attribute('innerHTML').strip().replace(',', '')
-                    string_to_write = [trip_name,departure_id,departure_date,'ActualPriceUSD',actual_price]
+                    string_to_write = [trip_name,departure_id,'ActualPriceUSD',actual_price]
                     csv_writer.writerow(string_to_write)
                     # print(string_to_write)
 
                     notes = departureData[5].get_attribute('innerHTML')
-                    string_to_write = [trip_name,departure_id,departure_date,'Notes',notes]
+                    string_to_write = [trip_name,departure_id,'Notes',notes]
                     csv_writer.writerow(string_to_write)
                     # print(string_to_write)
 
@@ -153,10 +157,10 @@ def main():
                         available = True
                     else:
                         status = 'UNRECOGNIZED STATUS'
-                    string_to_write = [trip_name,departure_id,departure_date,'Status',status]
+                    string_to_write = [trip_name,departure_id,'Status',status]
                     csv_writer.writerow(string_to_write)
                     # print(string_to_write)
-                    string_to_write = [trip_name,departure_id,departure_date,'Available',available]
+                    string_to_write = [trip_name,departure_id,'Available',available]
                     csv_writer.writerow(string_to_write)
                     # print(string_to_write)
 
