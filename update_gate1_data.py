@@ -148,21 +148,22 @@ def main():
 
                             if departure.find('span', class_='text-danger'):
                                 notes = departure.find('span', class_='text-danger').text
-                                string_to_write = [trip_name,departure_id,'Notes',notes]
-                                csv_writer.writerow(string_to_write)
-                                # print(string_to_write)
                                 if notes == '(Sold Out)':
                                     status = 'Sold Out'
-                                elif notes:                                                     # check if "Only x seats left!"
+                                else:                                                     # check if "Only x seats left!"
                                     status = 'Limited'
+                            else:
+                                notes = ''
+                                if available == False:
+                                    status = 'Cancelled'
                                 else:
-                                    if available == False:
-                                        status == 'Cancelled'
-                                    else:
-                                        status == 'Available'
-                                string_to_write = [trip_name,departure_id,'Status',status]
-                                csv_writer.writerow(string_to_write)
-                                # print(string_to_write)
+                                    status = 'Available'
+                            string_to_write = [trip_name,departure_id,'Notes',notes]
+                            csv_writer.writerow(string_to_write)
+                            # print(string_to_write)
+                            string_to_write = [trip_name,departure_id,'Status',status]
+                            csv_writer.writerow(string_to_write)
+                            # print(string_to_write)
 
                             if departure.find('td', class_='bookby-price'):
                                 prices = departure.find_all('td', class_='text-center')
