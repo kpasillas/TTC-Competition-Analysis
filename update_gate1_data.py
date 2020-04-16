@@ -99,14 +99,14 @@ def main():
 
                 data_table = soup.find('table', class_='date-price-table')
                 hidden_xs_items = data_table.find_all(class_='hidden-xs')
-                year = hidden_xs_items[0].text.split()[0]
+                year = hidden_xs_items[0].text.split()[0][-2:]
                 
                 for hidden_xs_item in hidden_xs_items:
                     table_rows = hidden_xs_item.find_all('tr')
                     for row in table_rows:
 
                         if row.find(class_='h4'):             # look for "YEAR Dates & Prices" if multiple years on same page
-                            year = row.find('th').text.split()[0]
+                            year = row.find('th').text.split()[0][-2:]
                         
                         elif row.get('class') == ['pricerow']:             # look for departure row
                             departure = row
@@ -205,13 +205,13 @@ def main():
             try:
                 data_table = soup.find('table', class_='date-price-table')
                 hidden_xs_items = data_table.find_all(class_='hidden-xs')
-                year = hidden_xs_items[0].text.split()[0]
+                year = hidden_xs_items[0].text.split()[0][-2:]
                 for hidden_xs_item in hidden_xs_items:
                     table_rows = hidden_xs_item.find_all('tr')
                     for row in table_rows:
 
                         if row.find(class_='h4'):             # look for "YEAR Dates & Prices" if multiple years on same page
-                            year = row.find('th').text.split()[0]
+                            year = row.find('th').text.split()[0][-2:]
                         
                         elif row.get('class') == ['pricerow']:             # look for departure row
                             departure = row
