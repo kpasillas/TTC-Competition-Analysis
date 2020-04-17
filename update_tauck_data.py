@@ -109,7 +109,7 @@ def main():
                     departureData = departure.find_elements_by_class_name('data-label')
                         
                     date_numbers = departureData[0].get_attribute('innerHTML').split()
-                    departure_date = '{:02}-{}-{}'.format(int(date_numbers[1]), date_numbers[0], year)
+                    departure_date = '{:02}-{}-{}'.format(int(date_numbers[1]), date_numbers[0], year[-2:])
                     # print(departure_date)
 
                     if departure_date == previous_departure_date:                   # check if duplicate departure
@@ -120,7 +120,7 @@ def main():
                     departure_letter = str(chr(duplicate_departure_count + 97))
                     day = '{:02}'.format(int(date_numbers[1]))
                     month = str(chr((datetime.strptime(date_numbers[0], '%b')).month + 64))
-                    departure_code = '{}{}{}{}'.format(day, month, year, departure_letter)
+                    departure_code = '{}{}{}{}'.format(day, month, year[-2:], departure_letter)
                     departure_id = '{}-{}'.format(op_code, departure_code)
                     # print(departure_id)
 
