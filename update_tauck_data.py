@@ -23,8 +23,6 @@ def main():
 
         field_names = ['Trip Name','DepartureID','field','value']
         csv_writer.writerow(field_names)
-
-        year = '2020'                     # OK to hard-code year value since separate links/report are needed for 2021
         
         linksUS = (                     # 45 total, 9 cruise (don't count)
             'https://www.tauck.com/tours/celebration-of-roses-escorted-tour-event?tcd=vr2020',      # A Celebration of Roses
@@ -90,11 +88,14 @@ def main():
             driver = webdriver.Chrome()
             driver.get(link)
 
-            nameElement = driver.find_element_by_tag_name('h1')
-            soup = bs4.BeautifulSoup(nameElement.get_attribute('innerHTML'), 'lxml')
-            trip_name = soup.contents[0].text.strip()
+            trip_name_element = driver.find_element_by_tag_name('h1')
+            trip_name_soup = bs4.BeautifulSoup(trip_name_element.get_attribute('innerHTML'), 'lxml')
+            trip_name = trip_name_soup.contents[0].text.strip()
             # print(trip_name)
             code = link.split('=')[1][:-4].upper()
+            year_element = driver.find_element_by_class_name('datepicker__button')
+            year_soup = bs4.BeautifulSoup(year_element.get_attribute('innerHTML'), 'lxml')
+            year = year_soup.contents[0].text.strip()
             op_code = 'Tauck{}{}'.format(code, year[-2:])
             # print(op_code)
             previous_departure_date = ''
