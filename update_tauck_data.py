@@ -4,6 +4,8 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import StaleElementReferenceException
 import requests
 import bs4
 import re
@@ -16,7 +18,8 @@ from tqdm import tqdm
 def main():
 
     today = date.today()
-    file_name = 'tauck_data_{}.csv'.format(today.strftime("%m-%d-%y"))  
+    file_name = 'tauck_raw_data_{}.csv'.format(today.strftime("%m-%d-%y"))
+    error_log = dict()
     
     with open(file_name, 'a') as new_file:
         csv_writer = csv.writer(new_file, lineterminator='\n')
@@ -24,12 +27,12 @@ def main():
         field_names = ['Trip Name','DepartureID','field','value']
         csv_writer.writerow(field_names)
         
-        linksUS = (                     # 45 total, 9 cruise (don't count)
+        linksUS = (
             'https://www.tauck.com/tours/celebration-of-roses-escorted-tour-event?tcd=vr2020',      # A Celebration of Roses
             'https://www.tauck.com/tours/call-of-wild-alaska-guided-family-tour?tcd=ya2020',        # Alaska: Call of the Wild
-            # 'https://www.tauck.com/tours/inside-passage-alaska-small-ship-cruise?tcd=xan2020',      # Alaska's Inside Passage
+            'https://www.tauck.com/tours/inside-passage-alaska-small-ship-cruise?tcd=xan2020',      # Alaska's Inside Passage
             'https://www.tauck.com/tours/american-canyonlands-grand-canyon-escorted-tour?tcd=cy2020',       # America's Canyonlands
-            # 'https://www.tauck.com/tours/antarctica-cruise?tcd=xr2020',     # Antarctica
+            'https://www.tauck.com/tours/antarctica-cruise?tcd=xr2020',     # Antarctica
             'https://www.tauck.com/tours/best-of-canadian-rockies-escorted-tour?tcd=br2020',        # Best of the Canadian Rockies
             'https://www.tauck.com/tours/bluegrass-blue-ridges-louisville-kentucky-escorted-tour?tcd=ky2020',       # Bluegrass and Blue Ridges: Louisville to Nashville
             'https://www.tauck.com/tours/bugaboos-adventure-canadian-rockies-guided-tour?tcd=bg2020',       # Bugaboos Adventure: Featuring Heli-Exploring
@@ -43,16 +46,16 @@ def main():
             'https://www.tauck.com/tours/costa-rica-pura-vida-escorted-tour?tcd=co2020',        # Costa Rica - Pura Vida
             'https://www.tauck.com/tours/jungles-rainforests-costa-rica-guided-family-vacation?tcd=yo2020',     # Costa Rica: Jungles & Rainforests
             'https://www.tauck.com/tours/cowboy-country-wyoming-escorted-family-vacation?tcd=yyn2020',      # Cowboy Country
-            # 'https://www.tauck.com/tours/cruising-the-galapagos-islands-cruise?tcd=ed2020',     # Cruising the Galapagos Islands
-            # 'https://www.tauck.com/tours/chicago-toronto-great-lakes-cruise?tcd=gle2020',       # Cruising the Great Lakes Chicago to Toronto
+            'https://www.tauck.com/tours/cruising-the-galapagos-islands-cruise?tcd=ed2020',     # Cruising the Galapagos Islands
+            'https://www.tauck.com/tours/chicago-toronto-great-lakes-cruise?tcd=gle2020',       # Cruising the Great Lakes Chicago to Toronto
             'https://www.tauck.com/tours/connecting-people-culture-escorted-cuba-tour?tcd=cv2020',      # Cuba: Connecting with People and Culture
             'https://www.tauck.com/tours/empire-of-incas-peru-bolivia-escorted-tour?tcd=pb2020',        # Empire of the Incas: Peru & Bolivia
             'https://www.tauck.com/tours/essence-of-south-america-brazil-argentina-escorted-tours?tcd=es2020',      # Essence of South America
-            # 'https://www.tauck.com/tours/wildlife-wonderland-galapagos-escorted-family-tour?tcd=yg2020',        # Galapagos: Wildlife Wonderland
-            # 'https://www.tauck.com/tours/grand-alaska-guided-tour-and-cruise?tcd=al2020',       # Grand Alaska
+            'https://www.tauck.com/tours/wildlife-wonderland-galapagos-escorted-family-tour?tcd=yg2020',        # Galapagos: Wildlife Wonderland
+            'https://www.tauck.com/tours/grand-alaska-guided-tour-and-cruise?tcd=al2020',       # Grand Alaska
             'https://www.tauck.com/tours/grand-canadian-rockies-escorted-tour?tcd=rre2020',     # Grand Canadian Rockies
             'https://www.tauck.com/tours/grand-new-england-fall-foliage-guided-tour?tcd=gr2020',        # Grand New England
-            # 'https://www.tauck.com/tours/hidden-galapagos-peru-escorted-tour?tcd=eb2020',       # Hidden Galapagos & Peru
+            'https://www.tauck.com/tours/hidden-galapagos-peru-escorted-tour?tcd=eb2020',       # Hidden Galapagos & Peru
             'https://www.tauck.com/tours/hidden-gems-new-england-guided-tour?tcd=ne2020',       # Hidden Gems of New England
             'https://www.tauck.com/tours/freedom-footsteps-philidelphia-washington-dc-guided-tour?tcd=wb2020',      # In Freedom's Footsteps: Philadelphia to Washington, DC
             'https://www.tauck.com/tours/legends-american-west-national-park-escorted-tour?tcd=jh2020',     # Legends of the American West
@@ -65,14 +68,14 @@ def main():
             'https://www.tauck.com/tours/nova-scotia-prince-edward-island-escorted-tour-and-cruise?tcd=ac2020',     # Nova Scotia & Prince Edward Island
             'https://www.tauck.com/tours/pacific-northwest-escorted-tour?tcd=nw2020',       # Pacific Northwest
             'https://www.tauck.com/tours/patagonia-escorted-tour?tcd=pt2020',       # Patagonia
-            # 'https://www.tauck.com/tours/peru-galapagos-guided-tour?tcd=eg2020',        # Peru and the Galapagos Islands
+            'https://www.tauck.com/tours/peru-galapagos-guided-tour?tcd=eg2020',        # Peru and the Galapagos Islands
             'https://www.tauck.com/tours/red-rocks-painted-canyon-arizona-escorted-family-tour?tcd=yc2020',     # Red Rocks & Painted Canyons
             'https://www.tauck.com/tours/charleston-savannah-escorted-tours?tcd=cs2020',        # Southern Charms: Savannah Hilton Head & Charleston
             'https://www.tauck.com/tours/national-parks-southwest-escorted-tour?tcd=kd2020',        # Spirit of the Desert: The National Parks of the Southwest
             'https://www.tauck.com/tours/nashville-history-of-country-music-tour?tcd=kn2020',       # Tauck Nashville Country Music Event
             'https://www.tauck.com/tours/best-of-hawaii-escorted-tour?tcd=hw2020',      # The Best of Hawaii
             'https://www.tauck.com/tours/hudson-valley-escorted-tour?tcd=hv2020',       # The Hudson Valley
-            # 'https://www.tauck.com/tours/costa-rica-and-panama-canal-cruise?tcd=pce2020',       # The Panama Canal & Costa Rica
+            'https://www.tauck.com/tours/costa-rica-and-panama-canal-cruise?tcd=pce2020',       # The Panama Canal & Costa Rica
             'https://www.tauck.com/tours/canadian-rockies-by-train?tcd=mt2020',     # Vancouver & the Rockies by Rocky Mountaineer
             'https://www.tauck.com/tours/wonderland-yellowstone-winter-escorted-tour?tcd=vw2020',       # Wonderland: Yellowstone in Winter
             'https://www.tauck.com/tours/canadian-rockies-family-tour?tcd=yr2020',       # Wonders of the Canadian Rockies
@@ -88,90 +91,114 @@ def main():
             driver = webdriver.Chrome()
             driver.get(link)
 
-            trip_name_element = driver.find_element_by_tag_name('h1')
-            trip_name_soup = bs4.BeautifulSoup(trip_name_element.get_attribute('innerHTML'), 'lxml')
-            trip_name = trip_name_soup.contents[0].text.strip()
-            # print(trip_name)
-            code = link.split('=')[1][:-4].upper()
-            year_element = driver.find_element_by_class_name('datepicker__button')
-            year_soup = bs4.BeautifulSoup(year_element.get_attribute('innerHTML'), 'lxml')
-            year = year_soup.contents[0].text.strip()
-            op_code = 'Tauck{}{}'.format(code, year[-2:])
-            # print(op_code)
-            previous_departure_date = ''
-            duplicate_departure_count = 0
-            
             try:
-                calendarElement = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'sheet__data')))
                 
-                departureItems = calendarElement.find_elements_by_class_name('sheet__data__wrapper')
-                for departure in departureItems:
+                trip_name_element = driver.find_element_by_tag_name('h1')
+                trip_name_soup = bs4.BeautifulSoup(trip_name_element.get_attribute('innerHTML'), 'lxml')
+                trip_name = trip_name_soup.contents[0].text.strip()
+                # print(trip_name)
+                code = link.split('=')[1][:-4].upper()
+                # print(code)
+
+                years_holder_element = driver.find_element_by_class_name('c-search-filters__section__content__years')
+                years_elements = years_holder_element.find_elements_by_tag_name('label')
+                datepicker_button_element = driver.find_element_by_class_name('c-btn-primary-b.datepicker__button.theme--light')
+                
+                for year_element in years_elements:
+                    
+                    year_soup = bs4.BeautifulSoup(year_element.get_attribute('innerHTML'), 'lxml')
+                    year = year_soup.text.strip()
+                    # print(year)
+                    
+                    datepicker_button_element.click()
+                    year_element.click()
+                    sleep(1)
+
+                    op_code = 'Tauck{}{}'.format(code, year[-2:])
+                    # print(op_code)
+                    previous_departure_date = ''
+                    duplicate_departure_count = 0        
+                    
+                    calendar_element = driver.find_element_by_class_name('sheet__data.ani-y.ani-timing-a.ani--in')
+                    departure_elements = calendar_element.find_elements_by_class_name('sheet__data__wrapper')
+                    
+                    for departure_element in departure_elements:
                         
-                    departureData = departure.find_elements_by_class_name('data-label')
+                        departure_data = departure_element.find_elements_by_class_name('data-label')
+
+                        date_numbers = departure_data[0].get_attribute('innerHTML').split()
+                        departure_date = '{:02}-{}-{}'.format(int(date_numbers[1]), date_numbers[0], year)
+                        # print(departure_date)
+
+                        if departure_date == previous_departure_date:                   # check if duplicate departure
+                            duplicate_departure_count += 1
+                        else:
+                            duplicate_departure_count = 0
                         
-                    date_numbers = departureData[0].get_attribute('innerHTML').split()
-                    departure_date = '{:02}-{}-{}'.format(int(date_numbers[1]), date_numbers[0], year[-2:])
-                    # print(departure_date)
+                        departure_letter = str(chr(duplicate_departure_count + 97))
+                        day = '{:02}'.format(int(date_numbers[1]))
+                        month_letter = str(chr((datetime.strptime(date_numbers[0], '%b')).month + 64))
+                        departure_code = '{}{}{}{}'.format(day, month_letter, year[-2:], departure_letter)
+                        departure_id = '{}-{}'.format(op_code, departure_code)
+                        # print(departure_id)
 
-                    if departure_date == previous_departure_date:                   # check if duplicate departure
-                        duplicate_departure_count += 1
-                    else:
-                        duplicate_departure_count = 0
+                        string_to_write = [trip_name,departure_id,'DepartureDate',departure_date]
+                        csv_writer.writerow(string_to_write)
+                        # print(string_to_write)
 
-                    departure_letter = str(chr(duplicate_departure_count + 97))
-                    day = '{:02}'.format(int(date_numbers[1]))
-                    month = str(chr((datetime.strptime(date_numbers[0], '%b')).month + 64))
-                    departure_code = '{}{}{}{}'.format(day, month, year[-2:], departure_letter)
-                    departure_id = '{}-{}'.format(op_code, departure_code)
-                    # print(departure_id)
+                        if departure_data[2].get_attribute('innerHTML'):
+                            departure_type = departure_data[2].get_attribute('innerHTML')
+                            string_to_write = [trip_name,departure_id,'Type',departure_type]
+                        else:
+                            string_to_write = [trip_name,departure_id,'Type','Cruise']
+                        csv_writer.writerow(string_to_write)
+                        # print(string_to_write)
 
-                    string_to_write = [trip_name,departure_id,'DepartureDate',departure_date]
-                    csv_writer.writerow(string_to_write)
-                    # print(string_to_write)
+                        actual_price = departure_data[4].get_attribute('innerHTML').strip().replace(',', '')
+                        string_to_write = [trip_name,departure_id,'ActualPriceUSD',actual_price]
+                        csv_writer.writerow(string_to_write)
+                        # print(string_to_write)
 
-                    departure_type = departureData[2].get_attribute('innerHTML')
-                    string_to_write = [trip_name,departure_id,'Type',departure_type]
-                    csv_writer.writerow(string_to_write)
-                    # print(string_to_write)
+                        notes = departure_data[5].get_attribute('innerHTML')
+                        string_to_write = [trip_name,departure_id,'Notes',notes]
+                        csv_writer.writerow(string_to_write)
+                        # print(string_to_write)
 
-                    actual_price = departureData[4].get_attribute('innerHTML').strip().replace(',', '')
-                    string_to_write = [trip_name,departure_id,'ActualPriceUSD',actual_price]
-                    csv_writer.writerow(string_to_write)
-                    # print(string_to_write)
+                        if notes == 'Soldout':
+                            status = 'Sold Out'
+                            available = False
+                        elif notes == 'Not Available':
+                            status = 'Cancelled'
+                            available = False
+                        elif notes == 'Limited':
+                            status = 'Limited'
+                            available = True
+                        elif notes == 'Available':
+                            status = 'Available'
+                            available = True
+                        else:
+                            status = 'UNRECOGNIZED STATUS'
+                        string_to_write = [trip_name,departure_id,'Status',status]
+                        csv_writer.writerow(string_to_write)
+                        # print(string_to_write)
+                        string_to_write = [trip_name,departure_id,'Available',available]
+                        csv_writer.writerow(string_to_write)
+                        # print(string_to_write)
 
-                    notes = departureData[5].get_attribute('innerHTML')
-                    string_to_write = [trip_name,departure_id,'Notes',notes]
-                    csv_writer.writerow(string_to_write)
-                    # print(string_to_write)
+                        previous_departure_date = departure_date
 
-                    if notes == 'Soldout':
-                        status = 'Sold Out'
-                        available = False
-                    elif notes == 'Not Available':
-                        status = 'Cancelled'
-                        available = False
-                    elif notes == 'Limited':
-                        status = 'Limited'
-                        available = True
-                    elif notes == 'Available':
-                        status = 'Available'
-                        available = True
-                    else:
-                        status = 'UNRECOGNIZED STATUS'
-                    string_to_write = [trip_name,departure_id,'Status',status]
-                    csv_writer.writerow(string_to_write)
-                    # print(string_to_write)
-                    string_to_write = [trip_name,departure_id,'Available',available]
-                    csv_writer.writerow(string_to_write)
-                    # print(string_to_write)
+                    datepicker_button_element.click()
 
-                    previous_departure_date = departure_date
-
-                    # print()
-
+            except StaleElementReferenceException:
+                error_log['{}'.format(trip_name)] = 'StaleElementReferenceException - can\'t handle 2022'
+            
             finally:
                 driver.quit()
 
+    print('\n\n*** Error Log ***')
+    for code, error in error_log.items():
+        print('{}: {}'.format(code, error))
+    
     print("\nDone!\n")
 
 if __name__ == '__main__': main()
