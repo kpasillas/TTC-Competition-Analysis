@@ -19,77 +19,53 @@ def main():
 
     today = date.today()
     file_name = 'tauck_raw_data_{}.csv'.format(today.strftime("%m-%d-%y"))
+    trips_US = []
     error_log = dict()
+
+    trip_regions = [
+        {'region_name':'Canada', 'US_link':'https://www.tauck.com/tours-and-cruises/land-tours/canada-tours', 'AU_link':''},
+        {'region_name':'United States', 'US_link':'https://www.tauck.com/tours-and-cruises/land-tours/united-states-land-tours', 'AU_link':''},
+        {'region_name':'Latin America', 'US_link':'https://www.tauck.com/tours-and-cruises/land-tours/latin-america-land-tours', 'AU_link':''}
+    ]
+
+    print()
+
+    for region in tqdm(trip_regions):
+
+        if region['US_link']:
+            driver = webdriver.Chrome()
+            driver.get(region['US_link'])
+            
+            try:
+                multiple_page_link_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'c-search-results-wrapper__pagination')))
+                all_link_element = multiple_page_link_element.find_element_by_link_text('All')
+                all_link_element.click()
+                sleep(1)
+
+                trip_elements = (driver.find_element_by_class_name('js-search-results__content')).find_elements_by_class_name('c-search-result')
+
+                for trip in trip_elements:
+                    trip_title_element = trip.find_element_by_class_name('text-serif.title')
+                    title = bs4.BeautifulSoup(trip_title_element.get_attribute('innerHTML'), 'lxml').text.strip()
+                    link = trip_title_element.get_attribute('href')
+                    trips_US.append({'trip_name':title, 'link':link})
+
+            finally:
+                driver.quit()
+
+    # print(trips_US)
+    print()
     
     with open(file_name, 'a') as new_file:
         csv_writer = csv.writer(new_file, lineterminator='\n')
 
         field_names = ['Trip Name','DepartureID','field','value']
         csv_writer.writerow(field_names)
-        
-        linksUS = (
-            'https://www.tauck.com/tours/celebration-of-roses-escorted-tour-event?tcd=vr2020',      # A Celebration of Roses
-            'https://www.tauck.com/tours/call-of-wild-alaska-guided-family-tour?tcd=ya2020',        # Alaska: Call of the Wild
-            'https://www.tauck.com/tours/inside-passage-alaska-small-ship-cruise?tcd=xan2020',      # Alaska's Inside Passage
-            'https://www.tauck.com/tours/american-canyonlands-grand-canyon-escorted-tour?tcd=cy2020',       # America's Canyonlands
-            'https://www.tauck.com/tours/antarctica-cruise?tcd=xr2020',     # Antarctica
-            'https://www.tauck.com/tours/best-of-canadian-rockies-escorted-tour?tcd=br2020',        # Best of the Canadian Rockies
-            'https://www.tauck.com/tours/bluegrass-blue-ridges-louisville-kentucky-escorted-tour?tcd=ky2020',       # Bluegrass and Blue Ridges: Louisville to Nashville
-            'https://www.tauck.com/tours/bugaboos-adventure-canadian-rockies-guided-tour?tcd=bg2020',       # Bugaboos Adventure: Featuring Heli-Exploring
-            'https://www.tauck.com/tours/gold-coast-california-escorted-tour?tcd=ca2020',       # California's Gold Coast
-            'https://www.tauck.com/tours/canada-capitals-niagara-falls-escorted-tours?tcd=cn2020',      # Canada's Capital Cities plus Niagara Falls
-            'https://www.tauck.com/tours/canadian-maritimes-nova-scotia-cruise-and-escorted-tour?tcd=cm2020',       # Canadian Maritimes
-            'https://www.tauck.com/tours/canadian-rockies-glacier-national-park-escorted-tour?tcd=cr2020',      # Canadian Rockies & Glacier National Park
-            'https://www.tauck.com/tours/canadian-rockies-whistler-victoria-escorted-tour?tcd=gc2020',      # Canadian Rockies, Whistler & Victoria
-            'https://www.tauck.com/tours/cape-cod-newport-new-england-escorted-tour-and-cruise?tcd=cc2020',     # Cape Cod, The Islands and Newport
-            'https://www.tauck.com/tours/boulder-denver-colorado-escorted-tours?tcd=cl2020',        # Colorado: Denver, Boulder & the Rockies
-            'https://www.tauck.com/tours/costa-rica-pura-vida-escorted-tour?tcd=co2020',        # Costa Rica - Pura Vida
-            'https://www.tauck.com/tours/jungles-rainforests-costa-rica-guided-family-vacation?tcd=yo2020',     # Costa Rica: Jungles & Rainforests
-            'https://www.tauck.com/tours/cowboy-country-wyoming-escorted-family-vacation?tcd=yyn2020',      # Cowboy Country
-            'https://www.tauck.com/tours/cruising-the-galapagos-islands-cruise?tcd=ed2020',     # Cruising the Galapagos Islands
-            'https://www.tauck.com/tours/chicago-toronto-great-lakes-cruise?tcd=gle2020',       # Cruising the Great Lakes Chicago to Toronto
-            'https://www.tauck.com/tours/connecting-people-culture-escorted-cuba-tour?tcd=cv2020',      # Cuba: Connecting with People and Culture
-            'https://www.tauck.com/tours/empire-of-incas-peru-bolivia-escorted-tour?tcd=pb2020',        # Empire of the Incas: Peru & Bolivia
-            'https://www.tauck.com/tours/essence-of-south-america-brazil-argentina-escorted-tours?tcd=es2020',      # Essence of South America
-            'https://www.tauck.com/tours/wildlife-wonderland-galapagos-escorted-family-tour?tcd=yg2020',        # Galapagos: Wildlife Wonderland
-            'https://www.tauck.com/tours/grand-alaska-guided-tour-and-cruise?tcd=al2020',       # Grand Alaska
-            'https://www.tauck.com/tours/grand-canadian-rockies-escorted-tour?tcd=rre2020',     # Grand Canadian Rockies
-            'https://www.tauck.com/tours/grand-new-england-fall-foliage-guided-tour?tcd=gr2020',        # Grand New England
-            'https://www.tauck.com/tours/hidden-galapagos-peru-escorted-tour?tcd=eb2020',       # Hidden Galapagos & Peru
-            'https://www.tauck.com/tours/hidden-gems-new-england-guided-tour?tcd=ne2020',       # Hidden Gems of New England
-            'https://www.tauck.com/tours/freedom-footsteps-philidelphia-washington-dc-guided-tour?tcd=wb2020',      # In Freedom's Footsteps: Philadelphia to Washington, DC
-            'https://www.tauck.com/tours/legends-american-west-national-park-escorted-tour?tcd=jh2020',     # Legends of the American West
-            'https://www.tauck.com/tours/california-family-tours-with-yosemite?tcd=yp2020',     # Majestic California: San Francisco, Yosemite & the Pacific
-            'https://www.tauck.com/tours/manitoba-polar-bear-tours?tcd=vm2020',     # Manitoba: Polar Bear Adventure
-            'https://www.tauck.com/tours/michigan-lakes-mackinac-island-escorted-tour?tcd=mi2020',      # Michigan's Lakes & Mackinac Island
-            'https://www.tauck.com/tours/mystical-peru-family-vacation-package?tcd=zp2020',     # Mystical Peru
-            'https://www.tauck.com/tours/land-of-enchantment-new-mexico-escorted-tour?tcd=nm2020',      # New Mexico: Land of Enchantment
-            'https://www.tauck.com/tours/mississippi-new-orleans-plantation-escorted-tour?tcd=nn2020',      # New Orleans & Missippi River Plantation Country
-            'https://www.tauck.com/tours/nova-scotia-prince-edward-island-escorted-tour-and-cruise?tcd=ac2020',     # Nova Scotia & Prince Edward Island
-            'https://www.tauck.com/tours/pacific-northwest-escorted-tour?tcd=nw2020',       # Pacific Northwest
-            'https://www.tauck.com/tours/patagonia-escorted-tour?tcd=pt2020',       # Patagonia
-            'https://www.tauck.com/tours/peru-galapagos-guided-tour?tcd=eg2020',        # Peru and the Galapagos Islands
-            'https://www.tauck.com/tours/red-rocks-painted-canyon-arizona-escorted-family-tour?tcd=yc2020',     # Red Rocks & Painted Canyons
-            'https://www.tauck.com/tours/charleston-savannah-escorted-tours?tcd=cs2020',        # Southern Charms: Savannah Hilton Head & Charleston
-            'https://www.tauck.com/tours/national-parks-southwest-escorted-tour?tcd=kd2020',        # Spirit of the Desert: The National Parks of the Southwest
-            'https://www.tauck.com/tours/nashville-history-of-country-music-tour?tcd=kn2020',       # Tauck Nashville Country Music Event
-            'https://www.tauck.com/tours/best-of-hawaii-escorted-tour?tcd=hw2020',      # The Best of Hawaii
-            'https://www.tauck.com/tours/hudson-valley-escorted-tour?tcd=hv2020',       # The Hudson Valley
-            'https://www.tauck.com/tours/costa-rica-and-panama-canal-cruise?tcd=pce2020',       # The Panama Canal & Costa Rica
-            'https://www.tauck.com/tours/canadian-rockies-by-train?tcd=mt2020',     # Vancouver & the Rockies by Rocky Mountaineer
-            'https://www.tauck.com/tours/wonderland-yellowstone-winter-escorted-tour?tcd=vw2020',       # Wonderland: Yellowstone in Winter
-            'https://www.tauck.com/tours/canadian-rockies-family-tour?tcd=yr2020',       # Wonders of the Canadian Rockies
-            'https://www.tauck.com/tours/grand-teton-yellowstone-escorted-tour?tcd=sln2020',        # Yellowstone & Grand Teton National Parks
-            'https://www.tauck.com/tours/american-safari-tetons-yellowstone-escorted-tour?tcd=vy2020',      # Yellowstone & the Tetons: American Safari
-            'https://www.tauck.com/tours/yosemite-and-sequoia-escorted-tour?tcd=km2020'     # Yostemite and Sequoia: John Muir's California
-        )
 
-        print()
-
-        for link in tqdm(linksUS):
+        for trip in tqdm(trips_US):
 
             driver = webdriver.Chrome()
-            driver.get(link)
+            driver.get(trip['link'])
 
             try:
                 
