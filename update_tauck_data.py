@@ -21,14 +21,13 @@ def main():
     file_name = 'tauck_raw_data_{}.csv'.format(today.strftime("%m-%d-%y"))
     trips_US = []
     error_log = dict()
+    trip_list = []
 
     trip_regions = [
         {'region_name':'Canada', 'US_link':'https://www.tauck.com/tours-and-cruises/land-tours/canada-tours', 'AU_link':''},
         {'region_name':'United States', 'US_link':'https://www.tauck.com/tours-and-cruises/land-tours/united-states-land-tours', 'AU_link':''},
-        {'region_name':'Latin America', 'US_link':'https://www.tauck.com/tours-and-cruises/land-tours/latin-america-land-tours', 'AU_link':''}
+        {'region_name':'Latin America', 'US_link':'https://www.tauck.com/tours-and-cruises/land-tours/latin-america-land-tours', 'AU_link':''},
     ]
-
-    print()
 
     for region in tqdm(trip_regions):
 
@@ -53,8 +52,10 @@ def main():
             finally:
                 driver.quit()
 
-    # print(trips_US)
-    print()
+    # for Error Log
+    # trips_US = [
+    #     {'trip_name':'', 'link':''},
+    # ]
     
     with open(file_name, 'a') as new_file:
         csv_writer = csv.writer(new_file, lineterminator='\n')
@@ -65,29 +66,33 @@ def main():
         for trip in tqdm(trips_US):
 
             driver = webdriver.Chrome()
-            driver.get(trip['link'])
+            link = trip['link']
+            driver.get(link)
 
             try:
                 
                 trip_name_element = driver.find_element_by_tag_name('h1')
                 trip_name_soup = bs4.BeautifulSoup(trip_name_element.get_attribute('innerHTML'), 'lxml')
                 trip_name = trip_name_soup.contents[0].text.strip()
-                # print(trip_name)
+                
+                # print('{} - {}'.format(trip['trip_name'], trip['link']))
+                trip_list.append(trip_name)
+                
                 code = link.split('=')[1][:-4].upper()
                 # print(code)
 
                 years_holder_element = driver.find_element_by_class_name('c-search-filters__section__content__years')
-                years_elements = years_holder_element.find_elements_by_tag_name('label')
+                years_elements = years_holder_element.find_elements_by_tag_name('span')
+                num_of_years = len(years_elements)
                 datepicker_button_element = driver.find_element_by_class_name('c-btn-primary-b.datepicker__button.theme--light')
-                
-                for year_element in years_elements:
-                    
-                    year_soup = bs4.BeautifulSoup(year_element.get_attribute('innerHTML'), 'lxml')
-                    year = year_soup.text.strip()
-                    # print(year)
+
+                for year_num in range(num_of_years):
                     
                     datepicker_button_element.click()
+                    sleep(1)
+                    year_element = driver.find_element_by_class_name('c-search-filters__section__content__years').find_elements_by_tag_name('span')[year_num]
                     year_element.click()
+                    year = driver.find_element_by_class_name('c-search-filters__section__content__years').find_elements_by_tag_name('span')[year_num].text
                     sleep(1)
 
                     op_code = 'Tauck{}{}'.format(code, year[-2:])
@@ -166,7 +171,7 @@ def main():
                     datepicker_button_element.click()
 
             except StaleElementReferenceException:
-                error_log['{}'.format(trip_name)] = 'StaleElementReferenceException - can\'t handle 2022'
+                error_log['{} - {}'.format(trip_name, link)] = 'Error'
             
             finally:
                 driver.quit()
@@ -174,6 +179,12 @@ def main():
     print('\n\n*** Error Log ***')
     for code, error in error_log.items():
         print('{}: {}'.format(code, error))
+    print('\n***           ***')
+
+    print('\n\n*** List of Trips ***')
+    for i in range(len(trip_list)):
+        print('{}) {}'.format(i + 1, trip_list[i]))
+    print('\n\n***               ***')
     
     print("\nDone!\n")
 
