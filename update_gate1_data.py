@@ -10,7 +10,7 @@ from tqdm import tqdm
 def main():
 
     today = date.today()
-    file_name = 'gate1_data_{}.csv'.format(today.strftime("%m-%d-%y"))
+    file_name = 'gate1_raw_data_{}.csv'.format(today.strftime("%m-%d-%y"))
 
     error_log = dict()
     
@@ -22,6 +22,9 @@ def main():
         # print(field_names)
     
         linksUS = (                 # 56 total names (not counting Mexico since removed from website)
+            # 'https://www.gate1travel.com.au/latin-america/ecuador-galapagos/2020/escorted/small-groups-ecuador-13dgeaa20.aspx',
+            # 'https://www.gate1travel.com.au/latin-america/peru/2020/escorted/small-groups-peru-14dpelgd20.aspx',
+            # 'https://www.gate1travel.com/usa-canada/usa/2021/northwest-escorted/alaska-tour-6daknlt21.aspx',
             'https://www.gate1travel.com/usa-canada/usa/2020/escorted/southwest-escorted-7dzbcagnprk19.aspx#prices',        # Affordable Zion, Bryce Canyon, Arches & Grand Canyon National Parks
             'https://www.gate1travel.com/usa-canada/usa/2020/escorted/southwest-escorted-7dzbcagnprk21.aspx#prices',        # Affordable Zion, Bryce Canyon, Arches & Grand Canyon National Parks
             'https://www.gate1travel.com/usa-canada/usa/2020/escorted/alaska-tour-6daknlt20.aspx#prices',       # Alaska with Northern Lights
@@ -99,7 +102,8 @@ def main():
 
                 data_table = soup.find('table', class_='date-price-table')
                 hidden_xs_items = data_table.find_all(class_='hidden-xs')
-                year = hidden_xs_items[0].text.split()[0][-2:]
+                # year = hidden_xs_items[0].text.split()[0][-2:]
+                year = data_table.find('th').text.split()[0][-2:]
                 
                 for hidden_xs_item in hidden_xs_items:
                     table_rows = hidden_xs_item.find_all('tr')
@@ -205,7 +209,8 @@ def main():
             try:
                 data_table = soup.find('table', class_='date-price-table')
                 hidden_xs_items = data_table.find_all(class_='hidden-xs')
-                year = hidden_xs_items[0].text.split()[0][-2:]
+                # year = hidden_xs_items[0].text.split()[0][-2:]
+                year = data_table.find('th').text.split()[0][-2:]
                 for hidden_xs_item in hidden_xs_items:
                     table_rows = hidden_xs_item.find_all('tr')
                     for row in table_rows:
