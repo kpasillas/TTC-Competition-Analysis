@@ -6,13 +6,13 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import StaleElementReferenceException
+from selenium.common.exceptions import ElementClickInterceptedException
 import requests
 import bs4
 import csv
 from datetime import date
 from datetime import datetime
 from tqdm import tqdm
-
 from time import sleep
 
 def main():
@@ -22,15 +22,15 @@ def main():
     link_prefix = 'https://www.gate1travel.com'
     regions_US = []
     trips_US = []
-    regions_AU = []
+    # regions_AU = []
     trips_set = set()
     error_log = dict()
-    max_tries = 5
 
     trip_continent = [
         {'continent_name':'USA & Canada', 'US_link':'https://www.gate1travel.com/usa-canada?Brand=GATE1', 'AU_link':''},
         {'continent_name':'Latin America', 'US_link':'https://www.gate1travel.com/latin-america?Brand=GATE1', 'AU_link':''}
     ]
+
 
     for continent in tqdm(trip_continent):
 
@@ -48,80 +48,65 @@ def main():
                 regions_US.append({'region_name':title, 'region_link':link})
 
 
-
-    # regions_US = [
-    #     {'region_name':'Peru', 'region_link':'https://www.gate1travel.com/latin-america/peru?Brand=GATE1'},
-    #     {'region_name':'National Parks', 'region_link':'https://www.gate1travel.com/usa-canada/usa?Brand=GATE1'}
-    # ]
-
-
-
     for region in tqdm(regions_US):
-        # print(region)
+        print(region['title'])
         driver = webdriver.Chrome()
         driver.get(region['region_link'])
 
         try:
             season_buttons = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'season-buttons-inner')))
-            # season_buttons = driver.find_element_by_class_name('season-buttons-inner')
             seasons = season_buttons.find_elements_by_class_name('btn')
-            # print(season_buttons)
             num_of_years = len(seasons)
-            # print(num_of_years)
-            
-            # for season in season_buttons.find_elements_by_class_name('btn'):
+
             for year_num in range(num_of_years):
-                # print('Year Num: {}'.format(year_num))
-                sleep(2)
-                # season = seasons[year_num]
-                season_buttons = driver.find_element_by_class_name('season-buttons-inner')
-                seasons = season_buttons.find_elements_by_class_name('btn')
-                # print(seasons[year_num].text)
-                sleep(2)
-                # print('Before Click')
-                seasons[year_num].click()
+
+                try:
+                    sleep(2)
+                    season_buttons = driver.find_element_by_class_name('season-buttons-inner')
+                    seasons = season_buttons.find_elements_by_class_name('btn')
+                    sleep(2)
+                    seasons[year_num].click()
                 
-                region_panel = driver.find_elements_by_class_name('panel-body')
-                num_of_regions = len(region_panel)
-                # print('Num of Regions: {}'.format(num_of_regions))
+                except ElementClickInterceptedException:
+                    pass
 
-                for region_num in range(num_of_regions):
-                    # print('Region Num: {}'.format(region_num))
-                    # sleep(2)
+                finally:
                     region_panel = driver.find_elements_by_class_name('panel-body')
+                    num_of_regions = len(region_panel)
 
-                    trip_panels = region_panel[region_num].find_elements_by_class_name('Off-Season')
-                    num_of_trips = len(trip_panels)
-                    # print('Num of Trips: {}'.format(num_of_trips))
+                    for region_num in range(num_of_regions):
 
-                    region_panel_soup = bs4.BeautifulSoup(region_panel[region_num].get_attribute('innerHTML'), 'lxml')
-                    # print(region_panel_soup.prettify())
+                        region_panel = driver.find_elements_by_class_name('panel-body')
+                        trip_panels = region_panel[region_num].find_elements_by_class_name('Off-Season')
+                        region_panel_soup = bs4.BeautifulSoup(region_panel[region_num].get_attribute('innerHTML'), 'lxml')
+                        trip_panels_soup = region_panel_soup.find_all('li')
 
-                    trip_panels_soup = region_panel_soup.find_all('li')
-                    for trip in trip_panels_soup:
-                        trip_name = trip.find('a').text
-                        trip_link = link_prefix + trip.find('a').get('href')
-                        trips_US.append({'trip_name':trip_name, 'trip_link':trip_link})
+                        for trip in trip_panels_soup:
 
-                sleep(2)
+                            trip_name = trip.find('a').text
+                            trip_link = link_prefix + trip.find('a').get('href')
+                            trips_US.append({'trip_name':trip_name, 'trip_link':trip_link})
+
+                    sleep(2)
 
         finally:
             driver.quit()
-    
+
+
     for trip in trips_US:
+        
         trips_set.add(trip['trip_link'])
-    # print(trips_set)
+
 
     with open(file_name, 'a') as new_file:
+        
         csv_writer = csv.writer(new_file, lineterminator='\n')
-
         field_names = ['Trip Name','DepartureID','field','value']
         csv_writer.writerow(field_names)
-    
+
         for link in tqdm(trips_set):
 
             res = get_html(link)
-            # print(type(res))
             soup = bs4.BeautifulSoup(res.text, 'lxml')
 
             try:
@@ -135,26 +120,26 @@ def main():
 
                 data_table = soup.find('table', class_='date-price-table')
                 hidden_xs_items = data_table.find_all(class_='hidden-xs')
-                # year = hidden_xs_items[0].text.split()[0][-2:]
                 year = data_table.find('th').text.split()[0][-2:]
                 
                 for hidden_xs_item in hidden_xs_items:
+                    
                     table_rows = hidden_xs_item.find_all('tr')
+                    
                     for row in table_rows:
 
                         if row.find(class_='h4'):             # look for "YEAR Dates & Prices" if multiple years on same page
                             year = row.find('th').text.split()[0][-2:]
-                        
                         elif row.get('class') == ['pricerow']:             # look for departure row
                             departure = row
-                
+
                             if departure.find('del', class_='text-muted'):                          # check if date is crossed-off (Sold Out or Cancelled)
                                 date_numbers = departure.find('del', class_='text-muted').text.split()
                                 available = False
                             elif departure.find('button', class_='serviceDate'):
                                 date_numbers = departure.find('button', class_='serviceDate').text.split()
                                 available = True
-                            
+
                             if len(date_numbers) == 3:                                                     # check if date format includes day of week
                                 departure_date = '{}-{}-20{}'.format(date_numbers[2], date_numbers[1], year)
                                 day = '{:02}'.format(int(date_numbers[2]))
@@ -220,12 +205,12 @@ def main():
                                 string_to_write = [trip_name,departure_id,'OriginalPriceUSD',actual_price]
                                 csv_writer.writerow(string_to_write)
                                 # print(string_to_write)
-                            
+
                             previous_departure_date = departure_date
 
             except AttributeError:
                 error_log['{} - US'.format(link)] = 'Missing from Website'
-    
+
     print("\nDone!\n")
 
 
