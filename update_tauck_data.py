@@ -6,6 +6,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import StaleElementReferenceException
+from selenium.common.exceptions import TimeoutException
 import requests
 import bs4
 import re
@@ -41,6 +42,10 @@ def main():
                 all_link_element.click()
                 sleep(1)
 
+            except TimeoutException:
+                pass
+
+            finally:
                 trip_elements = (driver.find_element_by_class_name('js-search-results__content')).find_elements_by_class_name('c-search-result')
 
                 for trip in trip_elements:
@@ -49,7 +54,6 @@ def main():
                     link = trip_title_element.get_attribute('href')
                     trips_US.append({'trip_name':title, 'link':link})
 
-            finally:
                 driver.quit()
 
     # for Error Log
