@@ -20,7 +20,7 @@ def main():
     trips_US = []
     regions_AU = []
     error_log = dict()
-    
+
     trip_continents = [
         {'continent_name':'North America', 'US_link':'https://www.cosmos.com/Vacations/North-America/', 'AU_link':''}
     ]
@@ -30,11 +30,11 @@ def main():
         if continent['US_link']:
             driver = webdriver.Chrome()
             driver.get(continent['US_link'])
-            
+
             try:
                 WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'row')))
                 region_rows = driver.find_elements_by_class_name('row')
-                
+
                 for region_row in region_rows:
                     soup = BeautifulSoup(region_row.get_attribute('innerHTML'), 'lxml')
                     regions = soup.find_all('a')
@@ -47,18 +47,18 @@ def main():
                 driver.quit()
 
     regions_US.append('https://www.cosmos.com/Vacations/South-America/')
-        
+
     # print(regions_US)
 
     for region in tqdm(regions_US):
 
         driver = webdriver.Chrome()
         driver.get(region)
-        
+
         try:
             WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'product-list-contain')))
             tours = driver.find_elements_by_class_name('product-list-contain')
-            
+
             for tour in tours:
                 soup = BeautifulSoup(tour.get_attribute('innerHTML'), 'lxml')
                 title = soup.find('h3').text.strip()
@@ -75,11 +75,11 @@ def main():
         if continent['AU_link']:
             driver = webdriver.Chrome()
             driver.get(continent['AU_link'])
-            
+
             try:
                 WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'destinations__item')))
                 regions = driver.find_elements_by_class_name('destinations__item')
-                
+
                 for region in regions:    
                     soup = BeautifulSoup(region.get_attribute('innerHTML'), 'lxml')
                     link = soup.find('a').get('href')
@@ -108,7 +108,7 @@ def main():
                 # print('{} - {}'.format(trip_name, code))
                 previous_departure_date = ''
                 duplicate_departure_count = 0
-                
+
                 for departure in soup.find_all('div', class_='listing'):
 
                     date_numbers = departure.find('p', class_='date-numbers').text.split()
@@ -128,16 +128,16 @@ def main():
                     departure_code = '{}{}{}{}'.format(day, month, year, departure_letter)
                     departure_id = '{}-{}'.format(op_code, departure_code)
                     # print(departure_id)
-                    
+
                     string_to_write = [trip_name,departure_id,'DepartureDate',departure_date]
                     csv_writer.writerow(string_to_write)
                     # print(string_to_write)
-                    
+
                     actual_price = departure.find('p', class_='price-actual').text.strip().replace(',', '')
                     string_to_write = [trip_name, departure_id,'ActualPriceUSD',actual_price]
                     csv_writer.writerow(string_to_write)
                     # print(string_to_write)
-                    
+
                     if departure.find('p', class_='price-strike'):
                         original_price = departure.find('p', class_='price-strike').text.strip().replace(',', '')
                     else:
@@ -145,13 +145,18 @@ def main():
                     string_to_write = [trip_name,departure_id,'OriginalPriceUSD',original_price]
                     csv_writer.writerow(string_to_write)
                     # print(string_to_write)
-                    
-                    if departure.find('div', class_='popular-message'):
+
+                    if departure.find('div', class_='small-message'):
+                        type_smallgroup = 'Small-Group Discovery'
+                        string_to_write = [trip_name,departure_id,'Type',type_smallgroup]
+                        csv_writer.writerow(string_to_write)
+                        # print(string_to_write)
+                    elif departure.find('div', class_='popular-message'):
                         type_popular = 'Popular'
                         string_to_write = [trip_name,departure_id,'Type',type_popular]
                         csv_writer.writerow(string_to_write)
                         # print(string_to_write)
-                    
+
                     if departure.find('div', class_='listing-status'):
                         notes = departure.find('div', class_='listing-status').text.strip()
                     else:
@@ -159,7 +164,7 @@ def main():
                     string_to_write = [trip_name,departure_id,'Notes',notes]
                     csv_writer.writerow(string_to_write)
                     # print(string_to_write)
-                    
+
                     if re.search( "Not Available", departure.find('div', class_='listing-buttons-contain').text) or notes == '0 Seats Remaining':
                         available = False
                         status = 'Not Available'
@@ -182,7 +187,7 @@ def main():
     for code, error in error_log.items():
         print('{}: {}'.format(code, error))
     print('\n\n***           ***')
-    
+
     print("\nDone!\n")
 
 if __name__ == '__main__': main()
