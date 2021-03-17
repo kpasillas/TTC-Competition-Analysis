@@ -49,7 +49,7 @@ def main():
 
 
     for region in tqdm(regions_US):
-        print(region['title'])
+
         driver = webdriver.Chrome()
         driver.get(region['region_link'])
 
@@ -94,12 +94,12 @@ def main():
 
 
     for trip in trips_US:
-        
+
         trips_set.add(trip['trip_link'])
 
 
     with open(file_name, 'a') as new_file:
-        
+
         csv_writer = csv.writer(new_file, lineterminator='\n')
         field_names = ['Trip Name','DepartureID','field','value']
         csv_writer.writerow(field_names)
@@ -121,11 +121,11 @@ def main():
                 data_table = soup.find('table', class_='date-price-table')
                 hidden_xs_items = data_table.find_all(class_='hidden-xs')
                 year = data_table.find('th').text.split()[0][-2:]
-                
+
                 for hidden_xs_item in hidden_xs_items:
-                    
+
                     table_rows = hidden_xs_item.find_all('tr')
-                    
+
                     for row in table_rows:
 
                         if row.find(class_='h4'):             # look for "YEAR Dates & Prices" if multiple years on same page
@@ -163,7 +163,7 @@ def main():
                             string_to_write = [trip_name,departure_id,'DepartureDate',departure_date]
                             csv_writer.writerow(string_to_write)
                             # print(string_to_write)
-                            
+
                             string_to_write = [trip_name,departure_id,'Available',available]
                             csv_writer.writerow(string_to_write)
                             # print(string_to_write)
@@ -208,6 +208,8 @@ def main():
 
                             previous_departure_date = departure_date
 
+                sleep(5)
+
             except AttributeError:
                 error_log['{} - US'.format(link)] = 'Missing from Website'
 
@@ -215,20 +217,18 @@ def main():
 
 
 def get_html(url, retry_count=0):
-    # print('In get_html')
     try:
-        # print('In get_html -> try')
         res = requests.get(url)
         return res
     # except ConnectionResetError as e:
     except:
         print('Retry Count: {}'.format(retry_count))
-        if retry_count >= 5:
+        if retry_count >= 10:
             raise e
             # print('Error')
             # pass
-        sleep(5)
-        get_html(url, retry_count + 1)
+        sleep(10)
+        return get_html(url, retry_count + 1)
 
 
 if __name__ == '__main__': main()
