@@ -176,6 +176,9 @@ def main():
 
             except StaleElementReferenceException:
                 error_log['{} - {}'.format(trip_name, link)] = 'Error'
+
+            except NoSuchElementException:
+                error_log['{} - {}'.format(trip_name, link)] = 'Bad Link'
             
             finally:
                 driver.quit()
