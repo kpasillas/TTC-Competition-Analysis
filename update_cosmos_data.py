@@ -4,6 +4,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 import requests
@@ -12,6 +13,7 @@ from datetime import datetime
 
 from trip import Trip
 from departure import Departure
+
 
 def main():
 
@@ -27,6 +29,7 @@ def main():
     trip_continents = [
         {'continent_name':'North America', 'US_link':'https://www.cosmos.com/Vacations/North-America/', 'AU_link':''}
     ]
+
 
     for continent in tqdm(trip_continents):
 
@@ -66,6 +69,9 @@ def main():
                 title = soup.find('h3').text.strip()
                 link = '{}{}'.format(link_prefix, soup.find('div', class_='btn-red').find_parent('a').get('href'))
                 trips_US.append({'trip_name':title, 'link':link})
+
+        except TimeoutException:
+            error_log['{} - US'.format(region)] = 'Non-List of Trips'
 
         finally:
             driver.quit()
