@@ -9,11 +9,14 @@ from selenium.common.exceptions import StaleElementReferenceException
 from selenium.common.exceptions import ElementClickInterceptedException
 import requests
 import bs4
-import csv
 from datetime import date
 from datetime import datetime
 from tqdm import tqdm
 from time import sleep
+
+from trip import Trip
+from departure import Departure
+
 
 def main():
 
@@ -22,8 +25,8 @@ def main():
     link_prefix = 'https://www.gate1travel.com'
     regions_US = []
     trips_US = []
-    # regions_AU = []
     trips_set = set()
+    trips = []
     error_log = dict()
 
     trip_continent = [
@@ -94,124 +97,89 @@ def main():
 
 
     for trip in trips_US:
-
         trips_set.add(trip['trip_link'])
 
 
-    with open(file_name, 'a') as new_file:
+    for link in tqdm(trips_set):
 
-        csv_writer = csv.writer(new_file, lineterminator='\n')
-        field_names = ['Trip Name','DepartureID','field','value']
-        csv_writer.writerow(field_names)
+        departures = []
+        
+        res = get_html(link)
+        soup = bs4.BeautifulSoup(res.text, 'lxml')
 
-        for link in tqdm(trips_set):
+        try:
+            trip_name = soup.find("h2").text.strip()
+            trip_code = 'Gate1{}'.format(link.split('.')[-2].split('-')[-1].upper())
+            
+            data_table = soup.find('table', class_='date-price-table')
+            hidden_xs_items = data_table.find_all(class_='hidden-xs')
+            year = data_table.find('th').text.split()[0][-2:]
 
-            res = get_html(link)
-            soup = bs4.BeautifulSoup(res.text, 'lxml')
+            for hidden_xs_item in hidden_xs_items:
 
-            try:
-                trip_name = soup.find("h2").text.strip()
-                # print(trip_name)
-                code = link.split('.')[-2].split('-')[-1].upper()
-                op_code = 'Gate1{}'.format(code)
-                # print(op_code)
-                previous_departure_date = ''
-                duplicate_departure_count = 0
+                table_rows = hidden_xs_item.find_all('tr')
 
-                data_table = soup.find('table', class_='date-price-table')
-                hidden_xs_items = data_table.find_all(class_='hidden-xs')
-                year = data_table.find('th').text.split()[0][-2:]
+                for row in table_rows:
 
-                for hidden_xs_item in hidden_xs_items:
+                    if row.find(class_='h4'):             # look for "YEAR Dates & Prices" if multiple years on same page
+                        year = row.find('th').text.split()[0][-2:]
+                    elif row.get('class') == ['pricerow']:             # look for departure row
+                        departure = row
 
-                    table_rows = hidden_xs_item.find_all('tr')
+                        if departure.find('del', class_='text-muted'):                          # check if date is crossed-off (Sold Out or Cancelled)
+                            date_numbers = departure.find('del', class_='text-muted').text.split()
+                            available = False
+                        elif departure.find('button', class_='serviceDate'):
+                            date_numbers = departure.find('button', class_='serviceDate').text.split()
+                            available = True
 
-                    for row in table_rows:
-
-                        if row.find(class_='h4'):             # look for "YEAR Dates & Prices" if multiple years on same page
-                            year = row.find('th').text.split()[0][-2:]
-                        elif row.get('class') == ['pricerow']:             # look for departure row
-                            departure = row
-
-                            if departure.find('del', class_='text-muted'):                          # check if date is crossed-off (Sold Out or Cancelled)
-                                date_numbers = departure.find('del', class_='text-muted').text.split()
-                                available = False
-                            elif departure.find('button', class_='serviceDate'):
-                                date_numbers = departure.find('button', class_='serviceDate').text.split()
-                                available = True
-
-                            if len(date_numbers) == 3:                                                     # check if date format includes day of week
-                                departure_date = '{}-{}-20{}'.format(date_numbers[2], date_numbers[1], year)
-                                day = '{:02}'.format(int(date_numbers[2]))
-                                month = str(chr((datetime.strptime(date_numbers[1], '%b')).month + 64))
+                        if len(date_numbers) == 3:                                                     # check if date format includes day of week
+                            departure_date = '{}-{}-20{}'.format(date_numbers[2], date_numbers[1], year)
+                        else:
+                            departure_date = '{}-{}-20{}'.format(date_numbers[1], date_numbers[0], year)
+                            
+                        if departure.find('span', class_='text-danger'):
+                            notes = departure.find('span', class_='text-danger').text
+                            if notes == '(Sold Out)':
+                                status = 'Sold Out'
+                            else:                                                     # check if "Only x seats left!"
+                                status = 'Limited'
+                        else:
+                            notes = ''
+                            if available == False:
+                                status = 'Cancelled'
                             else:
-                                departure_date = '{}-{}-20{}'.format(date_numbers[1], date_numbers[0], year)
-                                day = '{:02}'.format(int(date_numbers[1]))
-                                month = str(chr((datetime.strptime(date_numbers[0], '%b')).month + 64))
-                            # print(departure_date)
+                                status = 'Available'
 
-                            if departure_date == previous_departure_date:                   # check if duplicate departure
-                                duplicate_departure_count += 1
-                            else:
-                                duplicate_departure_count = 0
+                        if departure.find('td', class_='bookby-price'):
+                            prices = departure.find_all('td', class_='text-center')
+                            actual_price_usd = prices[0].text.strip().strip('*').replace(',', '')
+                            original_price_usd = prices[1].text.strip().strip('*').replace(',', '')
+                        else:
+                            actual_price_usd = departure.find('td', class_='text-center').text.strip().strip('*').replace(',', '')
+                            original_price_usd = actual_price_usd
 
-                            departure_letter = str(chr(duplicate_departure_count + 97))
-                            departure_code = '{}{}{}{}'.format(day, month, year, departure_letter)
-                            departure_id = '{}-{}'.format(op_code, departure_code)
-                            # print(departure_id)
+                        new_dep = Departure(date = departure_date, actual_price_usd = actual_price_usd, original_price_usd = original_price_usd, notes = notes, status = status, available = available)
+                        departures.append(new_dep)
 
-                            string_to_write = [trip_name,departure_id,'DepartureDate',departure_date]
-                            csv_writer.writerow(string_to_write)
-                            # print(string_to_write)
+            new_trip = Trip(trip_name, trip_code, departures)
+            trips.append(new_trip)
+            
+            sleep(5)
 
-                            string_to_write = [trip_name,departure_id,'Available',available]
-                            csv_writer.writerow(string_to_write)
-                            # print(string_to_write)
+        except AttributeError:
+            error_log['{} - US'.format(link)] = 'Missing from Website'
 
-                            if departure.find('span', class_='text-danger'):
-                                notes = departure.find('span', class_='text-danger').text
-                                if notes == '(Sold Out)':
-                                    status = 'Sold Out'
-                                else:                                                     # check if "Only x seats left!"
-                                    status = 'Limited'
-                            else:
-                                notes = ''
-                                if available == False:
-                                    status = 'Cancelled'
-                                else:
-                                    status = 'Available'
-                            string_to_write = [trip_name,departure_id,'Notes',notes]
-                            csv_writer.writerow(string_to_write)
-                            # print(string_to_write)
-                            string_to_write = [trip_name,departure_id,'Status',status]
-                            csv_writer.writerow(string_to_write)
-                            # print(string_to_write)
 
-                            if departure.find('td', class_='bookby-price'):
-                                prices = departure.find_all('td', class_='text-center')
-                                actual_price = prices[0].text.strip().strip('*').replace(',', '')
-                                string_to_write = [trip_name,departure_id,'ActualPriceUSD',actual_price]
-                                csv_writer.writerow(string_to_write)
-                                # print(string_to_write)
-                                original_price = prices[1].text.strip().strip('*').replace(',', '')
-                                string_to_write = [trip_name,departure_id,'OriginalPriceUSD',original_price]
-                                csv_writer.writerow(string_to_write)
-                                # print(string_to_write)
-                            else:
-                                actual_price = departure.find('td', class_='text-center').text.strip().strip('*').replace(',', '')
-                                string_to_write = [trip_name,departure_id,'ActualPriceUSD',actual_price]
-                                csv_writer.writerow(string_to_write)
-                                # print(string_to_write)
-                                string_to_write = [trip_name,departure_id,'OriginalPriceUSD',actual_price]
-                                csv_writer.writerow(string_to_write)
-                                # print(string_to_write)
+    for trip in trips:
+        trip.print_deps(file_name)
 
-                            previous_departure_date = departure_date
 
-                sleep(5)
+    print('\n\n*** Error Log ***')
+    for code, error in error_log.items():
+        print('{}: {}'.format(code, error))
+    print('\n\n***           ***')
 
-            except AttributeError:
-                error_log['{} - US'.format(link)] = 'Missing from Website'
 
     print("\nDone!\n")
 
