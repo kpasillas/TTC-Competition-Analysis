@@ -109,7 +109,7 @@ def main():
 
         try:
             trip_name = soup.find("h2").text.strip()
-            trip_code = 'Gate1{}'.format(link.split('.')[-2].split('-')[-1].upper())
+            trip_code = 'Gate1{}'.format(link.split('.')[-2].split('-')[-1][:-2].upper())
             
             data_table = soup.find('table', class_='date-price-table')
             hidden_xs_items = data_table.find_all(class_='hidden-xs')
