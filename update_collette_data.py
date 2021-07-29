@@ -10,6 +10,7 @@ from tqdm import tqdm
 import re
 from datetime import datetime
 import time
+import logging
 
 from trip import Trip
 from departure import Departure
@@ -17,6 +18,17 @@ from departure import Departure
 
 def main():
 
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+
+    formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
+
+    file_handler = logging.FileHandler(filename='update_competitor_data.log', mode='a')
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(formatter)
+
+    logger.addHandler(file_handler)
+    
     today = datetime.now()
     file_name = 'collette_raw_data_{}.csv'.format(today.strftime("%m-%d-%y"))
     link_prefix = 'https://www.gocollette.com'
@@ -139,6 +151,7 @@ def main():
 
             except TimeoutException:
                 error_log['{} - US'.format(trip_code)] = 'Missing from Website'
+                logger.error('{} - US - Missing from Website'.format(trip_code))
             
             finally:
                 driver.quit()
@@ -148,6 +161,7 @@ def main():
 
         else:
             error_log['{} - US'.format(trip['trip_name'])] = 'Missing US \'Book Now\' link'
+            logger.error('{} - US - Missing US \'Book Now\' link'.format(trip['trip_name']))
         
     for trip in trips:
         trip.print_deps(file_name)
@@ -157,6 +171,6 @@ def main():
         print('{}: {}'.format(code, error))
     print('\n\n***           ***')
     
-    print("\nDone!\n")
+    print("\nCollette, Done!\n")
 
 if __name__ == '__main__': main()
