@@ -10,6 +10,7 @@ from tqdm import tqdm
 import requests
 import re
 from datetime import datetime
+import logging
 
 from trip import Trip
 from departure import Departure
@@ -17,6 +18,17 @@ from departure import Departure
 
 def main():
 
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+
+    formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
+
+    file_handler = logging.FileHandler(filename='update_competitor_data.log', mode='a')
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(formatter)
+
+    logger.addHandler(file_handler)
+    
     today = datetime.today()
     file_name = 'globus_raw_data_{}.csv'.format(today.strftime("%m-%d-%y"))
     link_prefix = 'https://www.globusjourneys.com'
@@ -71,6 +83,7 @@ def main():
                 
         except TimeoutException:
             error_log['{} - US'.format(region)] = 'Non-List of Trips'
+            logger.debug('{} - US - Non-List of Trips'.format(region))
             
         finally:
             driver.quit()
@@ -144,6 +157,7 @@ def main():
         
         except:
             error_log['{} - US'.format(link)] = 'Missing from Website'
+            logger.debug('{} - US - Missing from Website'.format(link))
 
     for trip in trips:
         trip.print_deps(file_name)
@@ -153,6 +167,6 @@ def main():
         print('{}: {}'.format(code, error))
     print('\n\n***           ***')
 
-    print("\nDone!\n")
+    print("\nGlobus, Done!\n")
 
 if __name__ == '__main__': main()
