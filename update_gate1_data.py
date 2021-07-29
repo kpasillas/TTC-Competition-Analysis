@@ -13,6 +13,7 @@ from datetime import date
 from datetime import datetime
 from tqdm import tqdm
 from time import sleep
+import logging
 
 from trip import Trip
 from departure import Departure
@@ -20,6 +21,32 @@ from departure import Departure
 
 def main():
 
+    def get_html(url, retry_count=0):
+        try:
+            res = requests.get(url)
+            return res
+        # except ConnectionResetError as e:
+        except:
+            print('Retry Count: {}'.format(retry_count))
+            logger.error('Retry Count: {}'.format(retry_count))
+            if retry_count >= 10:
+                # raise e
+                # print('Error')
+                pass
+            sleep(10)
+            return get_html(url, retry_count + 1)
+    
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+
+    formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
+
+    file_handler = logging.FileHandler(filename='update_competitor_data.log', mode='a')
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(formatter)
+
+    logger.addHandler(file_handler)
+    
     today = date.today()
     file_name = 'gate1_raw_data_{}.csv'.format(today.strftime("%m-%d-%y"))
     link_prefix = 'https://www.gate1travel.com'
@@ -169,6 +196,7 @@ def main():
 
         except AttributeError:
             error_log['{} - US'.format(link)] = 'Missing from Website'
+            logger.debug('{} - US - Missing from Website'.format(link))
 
 
     for trip in trips:
@@ -181,22 +209,6 @@ def main():
     print('\n\n***           ***')
 
 
-    print("\nDone!\n")
-
-
-def get_html(url, retry_count=0):
-    try:
-        res = requests.get(url)
-        return res
-    # except ConnectionResetError as e:
-    except:
-        print('Retry Count: {}'.format(retry_count))
-        if retry_count >= 10:
-            raise e
-            # print('Error')
-            # pass
-        sleep(10)
-        return get_html(url, retry_count + 1)
-
+    print("\nGate1, Done!\n")
 
 if __name__ == '__main__': main()
