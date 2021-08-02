@@ -15,12 +15,24 @@ from datetime import date
 from datetime import datetime
 from time import sleep
 from tqdm import tqdm
+import logging
 
 from trip import Trip
 from departure import Departure
 
 def main():
 
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+
+    formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
+
+    file_handler = logging.FileHandler(filename='update_competitor_data.log', mode='a')
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(formatter)
+
+    logger.addHandler(file_handler)
+    
     today = date.today()
     file_name = 'tauck_raw_data_{}.csv'.format(today.strftime("%m-%d-%y"))
     trips_US = []
@@ -141,9 +153,11 @@ def main():
 
         except StaleElementReferenceException:
             error_log['{} - {}'.format(trip_name, link)] = 'Error'
+            logger.debug('{} - {} - Error'.format(trip_name, link))
 
         except NoSuchElementException:
             error_log['{} - {}'.format(trip_name, link)] = 'Bad Link'
+            logger.debug('{} - {} - Bad Link'.format(trip_name, link))
         
         finally:
             driver.quit()
@@ -159,6 +173,7 @@ def main():
     print('\n\n*** List of Trips ***')
     for i in range(len(trip_list)):
         print('{}) {}'.format(i + 1, trip_list[i]))
+        logger.info('{}) {}'.format(i + 1, trip_list[i]))
     print('\n\n***               ***')
     
     print("\nTauck, Done!\n")
