@@ -16,11 +16,15 @@ from datetime import datetime
 from time import sleep
 from tqdm import tqdm
 
+from trip import Trip
+from departure import Departure
+
 def main():
 
     today = date.today()
     file_name = 'tauck_raw_data_{}.csv'.format(today.strftime("%m-%d-%y"))
     trips_US = []
+    trips = []
     error_log = dict()
     trip_list = []
 
@@ -60,129 +64,93 @@ def main():
     # trips_US = [
     #     {'trip_name':'', 'link':''},
     # ]
-    
-    with open(file_name, 'a') as new_file:
-        csv_writer = csv.writer(new_file, lineterminator='\n')
+  
+    for trip in tqdm(trips_US):
 
-        field_names = ['Trip Name','DepartureID','field','value']
-        csv_writer.writerow(field_names)
+        departures = []
+        
+        driver = webdriver.Chrome()
+        link = trip['link']
+        driver.get(link)
 
-        for trip in tqdm(trips_US):
-
-            driver = webdriver.Chrome()
-            link = trip['link']
-            driver.get(link)
-
-            try:
-                
-                trip_name_element = driver.find_element_by_tag_name('h1')
-                trip_name_soup = bs4.BeautifulSoup(trip_name_element.get_attribute('innerHTML'), 'lxml')
-                trip_name = trip_name_soup.contents[0].text.strip()
-                
-                # print('{} - {}'.format(trip['trip_name'], trip['link']))
-                trip_list.append(trip_name)
-                
-                code = link.split('=')[1][:-4].upper()
-                # print(code)
-
-                years_holder_element = driver.find_element_by_class_name('c-search-filters__section__content__years')
-                years_elements = years_holder_element.find_elements_by_tag_name('span')
-                num_of_years = len(years_elements)
-                datepicker_button_element = driver.find_element_by_class_name('c-btn-primary-b.datepicker__button.theme--light')
-
-                for year_num in range(num_of_years):
-                    
-                    datepicker_button_element.click()
-                    sleep(1)
-                    year_element = driver.find_element_by_class_name('c-search-filters__section__content__years').find_elements_by_tag_name('span')[year_num]
-                    year_element.click()
-                    year = driver.find_element_by_class_name('c-search-filters__section__content__years').find_elements_by_tag_name('span')[year_num].text
-                    sleep(1)
-
-                    op_code = 'Tauck{}{}'.format(code, year[-2:])
-                    # print(op_code)
-                    previous_departure_date = ''
-                    duplicate_departure_count = 0        
-                    
-                    calendar_element = driver.find_element_by_class_name('sheet__data.ani-y.ani-timing-a.ani--in')
-                    departure_elements = calendar_element.find_elements_by_class_name('sheet__data__wrapper')
-                    
-                    for departure_element in departure_elements:
-                        
-                        departure_data = departure_element.find_elements_by_class_name('data-label')
-
-                        date_numbers = departure_data[0].get_attribute('innerHTML').split()
-                        departure_date = '{:02}-{}-{}'.format(int(date_numbers[1]), date_numbers[0], year)
-                        # print(departure_date)
-
-                        if departure_date == previous_departure_date:                   # check if duplicate departure
-                            duplicate_departure_count += 1
-                        else:
-                            duplicate_departure_count = 0
-                        
-                        departure_letter = str(chr(duplicate_departure_count + 97))
-                        day = '{:02}'.format(int(date_numbers[1]))
-                        month_letter = str(chr((datetime.strptime(date_numbers[0], '%b')).month + 64))
-                        departure_code = '{}{}{}{}'.format(day, month_letter, year[-2:], departure_letter)
-                        departure_id = '{}-{}'.format(op_code, departure_code)
-                        # print(departure_id)
-
-                        string_to_write = [trip_name,departure_id,'DepartureDate',departure_date]
-                        csv_writer.writerow(string_to_write)
-                        # print(string_to_write)
-
-                        if departure_data[2].get_attribute('innerHTML'):
-                            departure_type = departure_data[2].get_attribute('innerHTML')
-                            string_to_write = [trip_name,departure_id,'Type',departure_type]
-                        else:
-                            string_to_write = [trip_name,departure_id,'Type','Cruise']
-                        csv_writer.writerow(string_to_write)
-                        # print(string_to_write)
-
-                        actual_price = departure_data[4].get_attribute('innerHTML').strip().replace(',', '')
-                        string_to_write = [trip_name,departure_id,'ActualPriceUSD',actual_price]
-                        csv_writer.writerow(string_to_write)
-                        # print(string_to_write)
-
-                        notes = departure_data[5].get_attribute('innerHTML')
-                        string_to_write = [trip_name,departure_id,'Notes',notes]
-                        csv_writer.writerow(string_to_write)
-                        # print(string_to_write)
-
-                        if notes == 'Soldout':
-                            status = 'Sold Out'
-                            available = False
-                        elif notes == 'Not Available':
-                            status = 'Cancelled'
-                            available = False
-                        elif notes == 'Limited':
-                            status = 'Limited'
-                            available = True
-                        elif notes == 'Available':
-                            status = 'Available'
-                            available = True
-                        else:
-                            status = 'UNRECOGNIZED STATUS'
-                        string_to_write = [trip_name,departure_id,'Status',status]
-                        csv_writer.writerow(string_to_write)
-                        # print(string_to_write)
-                        string_to_write = [trip_name,departure_id,'Available',available]
-                        csv_writer.writerow(string_to_write)
-                        # print(string_to_write)
-
-                        previous_departure_date = departure_date
-
-                    datepicker_button_element.click()
-
-            except StaleElementReferenceException:
-                error_log['{} - {}'.format(trip_name, link)] = 'Error'
-
-            except NoSuchElementException:
-                error_log['{} - {}'.format(trip_name, link)] = 'Bad Link'
+        try:
             
-            finally:
-                driver.quit()
+            trip_name_element = driver.find_element_by_tag_name('h1')
+            trip_name_soup = bs4.BeautifulSoup(trip_name_element.get_attribute('innerHTML'), 'lxml')
+            trip_name = trip_name_soup.contents[0].text.strip()
+            trip_code = 'Tauck{}'.format(link.split('=')[1][:-4].upper())
+            
+            trip_list.append(trip_name)
 
+            years_holder_element = driver.find_element_by_class_name('c-search-filters__section__content__years')
+            years_elements = years_holder_element.find_elements_by_tag_name('span')
+            num_of_years = len(years_elements)
+            datepicker_button_element = driver.find_element_by_class_name('c-btn-primary-b.datepicker__button.theme--light')
+
+            for year_num in range(num_of_years):
+                
+                datepicker_button_element.click()
+                sleep(1)
+                year_element = driver.find_element_by_class_name('c-search-filters__section__content__years').find_elements_by_tag_name('span')[year_num]
+                year_element.click()
+                year = driver.find_element_by_class_name('c-search-filters__section__content__years').find_elements_by_tag_name('span')[year_num].text
+                sleep(1)
+                
+                calendar_element = driver.find_element_by_class_name('sheet__data.ani-y.ani-timing-a.ani--in')
+                departure_elements = calendar_element.find_elements_by_class_name('sheet__data__wrapper')
+                
+                for departure_element in departure_elements:
+                    
+                    departure_data = departure_element.find_elements_by_class_name('data-label')
+
+                    date_numbers = departure_data[0].get_attribute('innerHTML').split()
+                    departure_date = '{:02}-{}-{}'.format(int(date_numbers[1]), date_numbers[0], year)
+
+                    if departure_data[2].get_attribute('innerHTML'):
+                        type = departure_data[2].get_attribute('innerHTML')
+                    else:
+                        type = ''
+
+                    actual_price_usd = departure_data[4].get_attribute('innerHTML').replace(',', '').replace('$', '').split()[0]
+
+                    notes = departure_data[5].get_attribute('innerHTML')
+
+                    if notes == 'Soldout':
+                        status = 'Sold Out'
+                        available = False
+                    elif notes == 'Not Available':
+                        status = 'Cancelled'
+                        available = False
+                    elif notes == 'Limited':
+                        status = 'Limited'
+                        available = True
+                    elif notes == 'Available':
+                        status = 'Available'
+                        available = True
+                    else:
+                        status = 'UNRECOGNIZED STATUS'
+                        available = False
+
+                    new_dep = Departure(date = departure_date, actual_price_usd = actual_price_usd, type = type, notes = notes, status = status, available = available)
+                    departures.append(new_dep)
+                
+                datepicker_button_element.click()
+
+            new_trip = Trip(trip_name, trip_code, departures)
+            trips.append(new_trip)
+
+        except StaleElementReferenceException:
+            error_log['{} - {}'.format(trip_name, link)] = 'Error'
+
+        except NoSuchElementException:
+            error_log['{} - {}'.format(trip_name, link)] = 'Bad Link'
+        
+        finally:
+            driver.quit()
+
+    for trip in trips:
+        trip.print_deps(file_name)
+    
     print('\n\n*** Error Log ***')
     for code, error in error_log.items():
         print('{}: {}'.format(code, error))
@@ -193,6 +161,6 @@ def main():
         print('{}) {}'.format(i + 1, trip_list[i]))
     print('\n\n***               ***')
     
-    print("\nDone!\n")
+    print("\nTauck, Done!\n")
 
 if __name__ == '__main__': main()
