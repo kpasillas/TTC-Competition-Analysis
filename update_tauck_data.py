@@ -35,7 +35,7 @@ def main():
     
     today = date.today()
     file_name = 'tauck_raw_data_{}.csv'.format(today.strftime("%m-%d-%y"))
-    trips_US = []
+    trips_US = set()
     trips = []
     error_log = dict()
     trip_list = []
@@ -46,44 +46,12 @@ def main():
         {'region_name':'Latin America', 'US_link':'https://www.tauck.com/tours-and-cruises/land-tours/latin-america-land-tours', 'AU_link':''},
     ]
 
-    for region in tqdm(trip_regions):
-
-        if region['US_link']:
-            driver = webdriver.Chrome()
-            driver.get(region['US_link'])
-            
-            try:
-                multiple_page_link_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'c-search-results-wrapper__pagination')))
-                all_link_element = multiple_page_link_element.find_element_by_link_text('All')
-                all_link_element.click()
-                sleep(1)
-
-            except TimeoutException:
-                pass
-
-            finally:
-                trip_elements = (driver.find_element_by_class_name('js-search-results__content')).find_elements_by_class_name('c-search-result')
-
-                for trip in trip_elements:
-                    trip_title_element = trip.find_element_by_class_name('text-serif.title')
-                    title = bs4.BeautifulSoup(trip_title_element.get_attribute('innerHTML'), 'lxml').text.strip()
-                    link = trip_title_element.get_attribute('href')
-                    trips_US.append({'trip_name':title, 'link':link})
-
-                driver.quit()
-
-    # for Error Log
-    # trips_US = [
-    #     {'trip_name':'', 'link':''},
-    # ]
-  
-    for trip in tqdm(trips_US):
-
-        departures = []
+    def get_trip(url, retry_count=0):
         
         driver = webdriver.Chrome()
-        link = trip['link']
-        driver.get(link)
+        driver.get(url)
+
+        departures = []
 
         try:
             
@@ -151,19 +119,64 @@ def main():
             new_trip = Trip(trip_name, trip_code, departures)
             trips.append(new_trip)
 
-        except StaleElementReferenceException:
-            error_log['{} - {}'.format(trip_name, link)] = 'Error'
-            logger.debug('{} - {} - Error'.format(trip_name, link))
-
         except NoSuchElementException:
-            error_log['{} - {}'.format(trip_name, link)] = 'Bad Link'
-            logger.debug('{} - {} - Bad Link'.format(trip_name, link))
+            error_log['{}'.format(url)] = 'Bad Link'
+            logger.debug('{} - Bad Link'.format(url))
+
+        except:
+            driver.quit()
+
+            if retry_count >= 5:
+                error_log['{}'.format(url)] = 'Retry timeout'
+                logger.debug('{} - Retry timeout'.format(url))
+                return
+
+            sleep(5)
+            return get_trip(url, retry_count + 1)
         
         finally:
             driver.quit()
 
+
+    for region in tqdm(trip_regions):
+
+        if region['US_link']:
+            driver = webdriver.Chrome()
+            driver.get(region['US_link'])
+            
+            try:
+                multiple_page_link_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'c-search-results-wrapper__pagination')))
+                all_link_element = multiple_page_link_element.find_element_by_link_text('All')
+                all_link_element.click()
+                sleep(1)
+
+            except TimeoutException:
+                error_log['{} - US'.format(region)] = 'Non-List of Trips'
+                logger.debug('{} - US - Non-List of Trips'.format(region))
+
+            finally:
+                trip_elements = (driver.find_element_by_class_name('js-search-results__content')).find_elements_by_class_name('c-search-result')
+
+                for trip in trip_elements:
+                    trip_title_element = trip.find_element_by_class_name('text-serif.title')
+                    link = trip_title_element.get_attribute('href')
+                    trips_US.add(link)
+
+                driver.quit()
+
+
+    # for Error Log
+    # trips_US = (
+    #     '',
+    # )
+
+    for trip in tqdm(trips_US):
+        trips.append(get_trip(trip))
+
+
     for trip in trips:
-        trip.print_deps(file_name)
+        if trip is not None:
+            trip.print_deps(file_name)
     
     print('\n\n*** Error Log ***')
     for code, error in error_log.items():
